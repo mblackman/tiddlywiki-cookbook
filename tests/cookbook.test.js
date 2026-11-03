@@ -52,7 +52,7 @@ describe("Cookbook Plugin ($:/plugins/mblackman/cookbook)", () => {
     expect(pluginTiddler).toBeDefined();
     expect(pluginTiddler.fields.name).toBe("Cookbook");
     expect(pluginTiddler.fields["core-version"]).toBe(">=5.4.0");
-    expect(pluginTiddler.fields.version).toBe("0.1.0");
+    expect(pluginTiddler.fields.version).toBe("0.1.1");
     expect(pluginTiddler.fields["plugin-type"]).toBe("plugin");
     expect(pluginTiddler.fields.dependents || []).toEqual([]);
     expect(pluginTiddler.fields.list).toEqual(["readme", "config", "tree"]);
@@ -104,6 +104,8 @@ describe("Cookbook Plugin ($:/plugins/mblackman/cookbook)", () => {
     expect(indexStyles.fields.text).toContain("--cb-surface-card: var(--suite-surface-card)");
     expect(indexStyles.fields.text).toContain("container: suite-view / inline-size");
     expect(indexStyles.fields.text).toContain("@container suite-view (max-width: 640px)");
+    expect(indexStyles.fields.text).toContain("@container suite-view (max-width: 420px)");
+    expect(indexStyles.fields.text).toContain("@container (width < 600px)");
     expect(indexStyles.fields.text).toContain("font-variant-numeric: tabular-nums");
     expect(indexStyles.fields.text).toContain("@media (forced-colors: active)");
     expect(indexStyles.fields.text).toContain(":hover:not(:disabled, [aria-disabled=\"true\"])");
@@ -263,6 +265,38 @@ describe("Cookbook Plugin ($:/plugins/mblackman/cookbook)", () => {
         "$:/plugins/mblackman/cookbook/dashboard"
       );
       expect(emptyDashboard).toContain("No matching recipes found.");
+    } finally {
+      $tw.wiki.deleteTiddler(filterState);
+    }
+  });
+
+  test("renders compact Sidebar Tool View for skinny columns and shares filter state", () => {
+    const filterState = "$:/temp/recipe/dashboard-filter";
+
+    try {
+      const sidebarHtml = $tw.wiki.renderTiddler(
+        "text/html",
+        "$:/plugins/mblackman/cookbook/ui/sidebar-tab"
+      );
+      expect(sidebarHtml).toContain("tw-recipe-sidebar");
+      expect(sidebarHtml).toContain('data-suite-density="compact"');
+      expect(sidebarHtml).toContain("tw-recipe-sidebar-card");
+      expect(sidebarHtml).toContain("Crisis-Proof Cast Iron Pan Pizza");
+      expect(sidebarHtml).toContain("Crushed San Marzano Tomatoes");
+      expect(sidebarHtml).toContain("Open Dashboard");
+
+      $tw.wiki.addTiddler({
+        title: filterState,
+        "dish-type": "Baking",
+        status: "",
+        search: "",
+      });
+      const filteredSidebar = $tw.wiki.renderTiddler(
+        "text/html",
+        "$:/plugins/mblackman/cookbook/ui/sidebar-tab"
+      );
+      expect(filteredSidebar).toContain("Crisis-Proof Cast Iron Pan Pizza");
+      expect(filteredSidebar).toContain("Clear Filters");
     } finally {
       $tw.wiki.deleteTiddler(filterState);
     }

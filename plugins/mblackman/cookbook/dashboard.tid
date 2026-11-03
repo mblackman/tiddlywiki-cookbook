@@ -4,24 +4,12 @@ type: text/vnd.tiddlywiki
 
 \import [[$:/plugins/mblackman/cookbook/procedures]]
 
-\function f.filter-By-Type(selType)
-[<selType>is[blank]then<currentTiddler>] :else[<currentTiddler>field:dish-type<selType>]
-\end
-
-\function f.filter-By-Status(selStatus)
-[<selStatus>is[blank]then<currentTiddler>] :else[<currentTiddler>field:status<selStatus>]
-\end
-
-\function f.filter-By-Query(selQuery)
-[<selQuery>is[blank]then<currentTiddler>] :else[<currentTiddler>search:title,cuisine,ingredients,text<selQuery>]
-\end
-
 \procedure recipe-Filter-Row(recTitle)
 <$tiddler tiddler=<<recTitle>>>
 <tr>
-  <td><strong><$link to=<<recTitle>>><<recTitle>></$link></strong></td>
+  <th scope="row"><strong><$link to=<<recTitle>>><<recTitle>></$link></strong></th>
   <td><%if [{!!dish-type}!is[blank]] %><span class="suite-badge suite-badge--accent">{{!!dish-type}}</span><%else%>—<%endif%></td>
-  <td>{{!!cuisine}}</td>
+  <td><%if [{!!cuisine}!is[blank]] %>{{!!cuisine}}<%else%>—<%endif%></td>
   <td><%if [{!!status}!is[blank]] %><span class={{{ [[suite-badge]] [{!!status}match[Staple]then[suite-badge--success]] [{!!status}match[Tested]then[suite-badge--info]] +[join[ ]] }}}>{{!!status}}</span><%else%>—<%endif%></td>
   <td class="suite-tabular-nums"><%if [{!!rating}!is[blank]] %><span class="suite-badge suite-badge--warning suite-tabular-nums">★ {{!!rating}}/5</span><%else%>—<%endif%></td>
   <td class="suite-tabular-nums"><$text text={{{ [tag[CookLog]field:recipe<recTitle>count[]] }}}/>×</td>
@@ -31,109 +19,102 @@ type: text/vnd.tiddlywiki
 \end
 
 <div class="tw-recipe-dashboard tw-recipe-container suite-container">
-
-<div class="tw-recipe-dashboard-header suite-toolbar">
-  <$button class="suite-btn suite-btn--primary tw-recipe-btn tw-recipe-btn-primary" actions=<<action-Create-Recipe>>>
-    + Create New Recipe
-  </$button>
-</div>
-
-<h3 class="tw-recipe-section-title">Filter Recipes</h3>
-
-<$let
-  filterState="$:/temp/recipe/dashboard-filter"
-  selType={{{ [<filterState>get[dish-type]] }}}
-  selStatus={{{ [<filterState>get[status]] }}}
-  selQuery={{{ [<filterState>get[search]trim[]] }}}
->
-<div class="tw-recipe-filter-bar suite-panel-subtle">
-  <label class="tw-recipe-field-label">
-    <span>Search</span>
-    <$edit-text tiddler=<<filterState>> field="search" tag="input" class="suite-input tw-recipe-input" placeholder="Recipe title, ingredient, cuisine..."/>
-  </label>
-  <label class="tw-recipe-field-label">
-    <span>Dish Type</span>
-    <$select tiddler=<<filterState>> field="dish-type" default="" class="suite-select tw-recipe-select">
-      <option value="">All Types</option>
-      <$list filter="[tag[Recipe]each[dish-type]get[dish-type]!is[blank]sort[]]" variable="dt">
-        <option value=<<dt>>><<dt>></option>
-      </$list>
-    </$select>
-  </label>
-  <label class="tw-recipe-field-label">
-    <span>Status</span>
-    <$select tiddler=<<filterState>> field="status" default="" class="suite-select tw-recipe-select">
-      <option value="">All Statuses</option>
-      <option value="To Try">To Try</option>
-      <option value="Tested">Tested</option>
-      <option value="Staple">Staple</option>
-    </$select>
-  </label>
-  <%if [<selType>!is[blank]] [<selStatus>!is[blank]] [<selQuery>!is[blank]] +[count[]compare:number:gt[0]] %>
-    <$button class="suite-btn tw-recipe-btn">
-      <$action-deletetiddler $tiddler=<<filterState>>/>
-      Clear Filters
+  <div class="tw-recipe-dashboard-header suite-toolbar">
+    <$button class="suite-btn suite-btn--primary tw-recipe-btn tw-recipe-btn-primary" actions=<<action-Create-Recipe>>>
+      + Create New Recipe
     </$button>
-  <%endif%>
-</div>
-
-<div class="tw-recipe-table-wrap">
-  <table class="tw-recipe-table">
-    <thead>
-      <tr>
-        <th>Recipe</th>
-        <th>Type</th>
-        <th>Cuisine</th>
-        <th>Status</th>
-        <th>Rating</th>
-        <th>Cooked</th>
-        <th>Last Made</th>
-      </tr>
-    </thead>
-    <tbody>
-      <$list filter="[tag[Recipe]!has[draft.of]] :filter[f.filter-By-Type<selType>] :filter[f.filter-By-Status<selStatus>] :filter[f.filter-By-Query<selQuery>] +[sort[title]]" variable="rec" emptyMessage="<tr><td colspan='7' class='tw-recipe-table-empty'>No matching recipes found.</td></tr>">
-        <<recipe-Filter-Row recTitle=<<rec>>>>
-      </$list>
-    </tbody>
-  </table>
-</div>
-</$let>
-
-<h3 class="tw-recipe-section-title" style="margin-block-start: 1.5rem;">Recent Cook Log Sessions</h3>
-
-<div class="tw-recipe-table-wrap">
-  <table class="tw-recipe-table">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Recipe</th>
-        <th>Scale</th>
-        <th>Session Rating</th>
-        <th>Key Tweaks / Next Time Note</th>
-      </tr>
-    </thead>
-    <tbody>
-      <$list filter="[tag[CookLog]!has[draft.of]!sort[cook-date]limit[10]]" variable="log" emptyMessage="<tr><td colspan='5' class='tw-recipe-table-empty'>No cook sessions logged yet.</td></tr>">
-        <$tiddler tiddler=<<log>>>
+  </div>
+  <h3 id="cookbook-recipes-heading" class="tw-recipe-section-title">Filter Recipes</h3>
+  <$let
+    filterState="$:/temp/recipe/dashboard-filter"
+    selType={{{ [<filterState>get[dish-type]] }}}
+    selStatus={{{ [<filterState>get[status]] }}}
+    selQuery={{{ [<filterState>get[search]trim[]] }}}
+  >
+    <div class="tw-recipe-filter-bar suite-panel-subtle">
+      <label class="tw-recipe-field-label">
+        <span>Search</span>
+        <$edit-text tiddler=<<filterState>> field="search" tag="input" class="suite-input tw-recipe-input" placeholder="Recipe title, ingredient, cuisine..."/>
+      </label>
+      <label class="tw-recipe-field-label">
+        <span>Dish Type</span>
+        <$select tiddler=<<filterState>> field="dish-type" default="" class="suite-select tw-recipe-select">
+          <option value="">All Types</option>
+          <$list filter="[tag[Recipe]each[dish-type]get[dish-type]!is[blank]sort[]]" variable="dt">
+            <option value=<<dt>>><<dt>></option>
+          </$list>
+        </$select>
+      </label>
+      <label class="tw-recipe-field-label">
+        <span>Status</span>
+        <$select tiddler=<<filterState>> field="status" default="" class="suite-select tw-recipe-select">
+          <option value="">All Statuses</option>
+          <option value="To Try">To Try</option>
+          <option value="Tested">Tested</option>
+          <option value="Staple">Staple</option>
+        </$select>
+      </label>
+      <%if [<selType>!is[blank]] [<selStatus>!is[blank]] [<selQuery>!is[blank]] +[count[]compare:number:gt[0]] %>
+        <$button class="suite-btn tw-recipe-btn">
+          <$action-deletetiddler $tiddler=<<filterState>>/>
+          Clear Filters
+        </$button>
+      <%endif%>
+    </div>
+    <div tabindex="0" role="region" aria-labelledby="cookbook-recipes-heading" class="tw-recipe-table-wrap">
+      <table class="tw-recipe-table tw-recipe-table--recipes">
+        <thead>
           <tr>
-            <td class="suite-tabular-nums"><$link to=<<log>>>{{!!cook-date}}</$link></td>
-            <td><$link to={{!!recipe}}>{{!!recipe}}</$link></td>
-            <td class="suite-tabular-nums">{{!!scale-used}}</td>
-            <td class="suite-tabular-nums"><span class="suite-badge suite-badge--warning suite-tabular-nums">★ {{!!session-rating}}/5</span></td>
-            <td>
-              <%if [{!!next-time}!is[blank]] %>
-                <strong>Next time:</strong> {{!!next-time}}
-              <%elseif [{!!modifications}!is[blank]] %>
-                {{!!modifications}}
-              <%else%>
-                <$text text={{{ [{!!text}splitregexp[\n]first[]] }}}/>
-              <%endif%>
-            </td>
+            <th scope="col">Recipe</th>
+            <th scope="col">Type</th>
+            <th scope="col">Cuisine</th>
+            <th scope="col">Status</th>
+            <th scope="col">Rating</th>
+            <th scope="col">Cooked</th>
+            <th scope="col">Last Made</th>
           </tr>
-        </$tiddler>
-      </$list>
-    </tbody>
-  </table>
-</div>
-
+        </thead>
+        <tbody>
+          <$list filter="[tag[Recipe]!has[draft.of]] :filter[f.filter-By-Type<selType>] :filter[f.filter-By-Status<selStatus>] :filter[f.filter-By-Query<selQuery>] +[sort[title]]" variable="rec" emptyMessage="<tr><td colspan='7' class='tw-recipe-table-empty'>No matching recipes found.</td></tr>">
+            <<recipe-Filter-Row recTitle=<<rec>>>>
+          </$list>
+        </tbody>
+      </table>
+    </div>
+  </$let>
+  <h3 id="cookbook-logs-heading" class="tw-recipe-section-title tw-recipe-section-title--spaced">Recent Cook Log Sessions</h3>
+  <div tabindex="0" role="region" aria-labelledby="cookbook-logs-heading" class="tw-recipe-table-wrap">
+    <table class="tw-recipe-table tw-recipe-table--logs">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Recipe</th>
+          <th scope="col">Scale</th>
+          <th scope="col">Session Rating</th>
+          <th scope="col">Key Tweaks / Next Time Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <$list filter="[tag[CookLog]!has[draft.of]!sort[cook-date]limit[10]]" variable="log" emptyMessage="<tr><td colspan='5' class='tw-recipe-table-empty'>No cook sessions logged yet.</td></tr>">
+          <$tiddler tiddler=<<log>>>
+            <tr>
+              <th scope="row" class="suite-tabular-nums"><$link to=<<log>>>{{!!cook-date}}</$link></th>
+              <td><$link to={{!!recipe}}>{{!!recipe}}</$link></td>
+              <td class="suite-tabular-nums">{{!!scale-used}}</td>
+              <td class="suite-tabular-nums"><span class="suite-badge suite-badge--warning suite-tabular-nums">★ {{!!session-rating}}/5</span></td>
+              <td>
+                <%if [{!!next-time}!is[blank]] %>
+                  <strong>Next time:</strong> {{!!next-time}}
+                <%elseif [{!!modifications}!is[blank]] %>
+                  {{!!modifications}}
+                <%else%>
+                  <$text text={{{ [{!!text}splitregexp[\n]first[]] }}}/>
+                <%endif%>
+              </td>
+            </tr>
+          </$tiddler>
+        </$list>
+      </tbody>
+    </table>
+  </div>
 </div>

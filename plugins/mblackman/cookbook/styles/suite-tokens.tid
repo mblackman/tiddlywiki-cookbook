@@ -65,6 +65,10 @@ type: text/vnd.tiddlywiki
   --suite-control-height-lg: 44px;
   --suite-touch-target: 36px;
 
+  --suite-measure-reading: 65ch;
+  --suite-width-reading: var(--mn-reading-width, 840px);
+  --suite-width-wide: var(--mn-wide-width, 1120px);
+
   --suite-font-sans: var(--mn-font-sans, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif);
   --suite-font-mono: var(--mn-font-mono, "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace);
 
@@ -106,6 +110,26 @@ type: text/vnd.tiddlywiki
   --suite-status-info-border: color-mix(in oklab, #3b82f6 30%, transparent);
 
   --suite-focus-ring: 0 0 0 3px color-mix(in oklab, var(--suite-accent) 28%, transparent);
+
+  --tw-suite-bg-canvas: var(--suite-bg-canvas);
+  --tw-suite-surface-primary: var(--suite-surface-primary);
+  --tw-suite-surface-card: var(--suite-surface-card);
+  --tw-suite-surface-subtle: var(--suite-surface-subtle);
+  --tw-suite-surface-elevated: var(--suite-surface-elevated);
+  --tw-suite-surface-hover: var(--suite-surface-hover);
+  --tw-suite-surface-active: var(--suite-surface-active);
+  --tw-suite-surface-dropzone: var(--suite-surface-dropzone);
+  --tw-suite-fg-primary: var(--suite-fg-primary);
+  --tw-suite-fg-secondary: var(--suite-fg-secondary);
+  --tw-suite-fg-muted: var(--suite-fg-muted);
+  --tw-suite-border-subtle: var(--suite-border-subtle);
+  --tw-suite-border-strong: var(--suite-border-strong);
+  --tw-suite-border-control: var(--suite-border-control);
+  --tw-suite-radius-sm: var(--suite-radius-sm);
+  --tw-suite-radius-md: var(--suite-radius-md);
+  --tw-suite-radius-lg: var(--suite-radius-lg);
+  --tw-suite-radius-pill: var(--suite-radius-pill);
+  --tw-suite-accent: var(--suite-accent);
 }
 
 :where([data-suite-density="compact"], .suite-density-compact) {
@@ -126,10 +150,26 @@ type: text/vnd.tiddlywiki
   text-wrap: pretty;
 }
 
+@media (prefers-contrast: more) {
+  :where(:root, .tc-page-container) {
+    --suite-border-subtle: color-mix(in oklab, var(--suite-fg-primary) 28%, transparent);
+    --suite-border-control: color-mix(in oklab, var(--suite-fg-primary) 68%, var(--suite-surface-primary));
+  }
+}
+
 @media (max-width: 640px), (pointer: coarse) {
   :where(:root, .tc-page-container) {
     --suite-control-height-sm: 36px;
     --suite-control-height-md: 44px;
     --suite-touch-target: 44px;
+  }
+}
+
+@media (max-width: 640px) {
+  :where(:root, .tc-page-container) {
+    --suite-card-padding-md: 0.75rem 0.875rem;
+    --suite-card-padding-lg: 0.875rem 1rem;
+    --suite-card-gap: 0.625rem;
+    --suite-section-gap: 1rem;
   }
 }

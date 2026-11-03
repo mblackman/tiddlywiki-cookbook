@@ -22,7 +22,6 @@ type: text/vnd.tiddlywiki
   class={{{ [[tw-recipe-container suite-container]] [<isCookMode>match[yes]then[tw-recipe-cookmode-on suite-density-touch]] +[join[ ]] }}}
   data-suite-density={{{ [<isCookMode>match[yes]then[touch]else[default]] }}}
 >
-
   <!-- 1. TOP METADATA & UTILITY BAR -->
   <div class="tw-recipe-header-card suite-card">
     <div class="tw-recipe-badges suite-tag-list">
@@ -142,7 +141,6 @@ type: text/vnd.tiddlywiki
 
   <!-- 3. TWO-COLUMN COOKING WORKSPACE: MISE EN PLACE (LEFT) + DIRECTIONS (RIGHT) -->
   <div class="tw-recipe-main-grid">
-
     <!-- Left Column: Structured Ingredients (if `ingredients` field is populated) -->
     <%if [{!!ingredients}!is[blank]] %>
       <div class="tw-recipe-ingredients-col suite-card">
@@ -320,6 +318,5 @@ type: text/vnd.tiddlywiki
       </div>
     <%endif%>
   </div>
-
 </div>
 </$let>

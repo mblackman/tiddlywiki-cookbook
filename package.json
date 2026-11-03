@@ -1,6 +1,6 @@
 {
   "name": "tiddlywiki-cookbook",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Structured recipe manager, live ingredient scaling, mise en place checklist, and post-cook journal for TiddlyWiki 5.4+",
   "main": "npm run build-all",
   "scripts": {

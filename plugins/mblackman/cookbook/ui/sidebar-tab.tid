@@ -3,4 +3,125 @@ tags: $:/tags/SideBar
 caption: Cookbook
 type: text/vnd.tiddlywiki
 
-{{$:/plugins/mblackman/cookbook/dashboard}}
+\import [[$:/plugins/mblackman/cookbook/procedures]]
+
+<div class="tw-recipe-sidebar tw-recipe-container suite-container" data-suite-density="compact">
+  <div class="tw-recipe-sidebar-actions suite-toolbar">
+    <$button class="suite-btn suite-btn--primary tw-recipe-btn tw-recipe-btn-primary" actions=<<action-Create-Recipe>>>
+      + New Recipe
+    </$button>
+    <$button class="suite-btn tw-recipe-btn" tooltip="Open full Cookbook Dashboard in story river">
+      <$action-navigate $to="$:/plugins/mblackman/cookbook/dashboard"/>
+      Open Dashboard
+    </$button>
+  </div>
+  <$let
+    filterState="$:/temp/recipe/dashboard-filter"
+    selType={{{ [<filterState>get[dish-type]] }}}
+    selStatus={{{ [<filterState>get[status]] }}}
+    selQuery={{{ [<filterState>get[search]trim[]] }}}
+  >
+    <div class="tw-recipe-sidebar-filters suite-panel-subtle">
+      <label class="tw-recipe-field-label">
+        <span>Search Recipes</span>
+        <$edit-text tiddler=<<filterState>> field="search" tag="input" class="suite-input tw-recipe-input" placeholder="Title, ingredient, cuisine..."/>
+      </label>
+      <div class="tw-recipe-sidebar-filter-row">
+        <label class="tw-recipe-field-label">
+          <span>Type</span>
+          <$select tiddler=<<filterState>> field="dish-type" default="" class="suite-select tw-recipe-select">
+            <option value="">All Types</option>
+            <$list filter="[tag[Recipe]each[dish-type]get[dish-type]!is[blank]sort[]]" variable="dt">
+              <option value=<<dt>>><<dt>></option>
+            </$list>
+          </$select>
+        </label>
+        <label class="tw-recipe-field-label">
+          <span>Status</span>
+          <$select tiddler=<<filterState>> field="status" default="" class="suite-select tw-recipe-select">
+            <option value="">All Statuses</option>
+            <option value="To Try">To Try</option>
+            <option value="Tested">Tested</option>
+            <option value="Staple">Staple</option>
+          </$select>
+        </label>
+      </div>
+      <%if [<selType>!is[blank]] [<selStatus>!is[blank]] [<selQuery>!is[blank]] +[count[]compare:number:gt[0]] %>
+        <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small tw-recipe-sidebar-clear">
+          <$action-deletetiddler $tiddler=<<filterState>>/>
+          Clear Filters
+        </$button>
+      <%endif%>
+    </div>
+    <div class="tw-recipe-sidebar-section">
+      <div class="tw-recipe-sidebar-heading-row">
+        <h3 class="tw-recipe-sidebar-heading">Recipes</h3>
+        <span class="suite-badge suite-tabular-nums">
+          <$text text={{{ [tag[Recipe]!has[draft.of]] :filter[f.filter-By-Type<selType>] :filter[f.filter-By-Status<selStatus>] :filter[f.filter-By-Query<selQuery>] +[count[]] }}}/>
+        </span>
+      </div>
+      <div class="tw-recipe-sidebar-list">
+        <$list filter="[tag[Recipe]!has[draft.of]] :filter[f.filter-By-Type<selType>] :filter[f.filter-By-Status<selStatus>] :filter[f.filter-By-Query<selQuery>] +[sort[title]]" variable="rec" emptyMessage="<div class='suite-empty-state tw-recipe-sidebar-empty'>No matching recipes found.</div>">
+          <$tiddler tiddler=<<rec>>>
+            <$let cookCount={{{ [tag[CookLog]field:recipe<rec>count[]] }}}>
+              <article class="tw-recipe-sidebar-card suite-card suite-card--compact">
+                <div class="tw-recipe-sidebar-card-top">
+                  <strong class="tw-recipe-sidebar-card-title"><$link to=<<rec>>><<rec>></$link></strong>
+                  <%if [{!!rating}!is[blank]] %>
+                    <span class="suite-badge suite-badge--warning suite-tabular-nums">★ {{!!rating}}/5</span>
+                  <%endif%>
+                </div>
+                <div class="tw-recipe-sidebar-card-meta suite-tag-list">
+                  <%if [{!!dish-type}!is[blank]] %>
+                    <span class="suite-badge suite-badge--accent">{{!!dish-type}}</span>
+                  <%endif%>
+                  <%if [{!!status}!is[blank]] %>
+                    <span class={{{ [[suite-badge]] [{!!status}match[Staple]then[suite-badge--success]] [{!!status}match[Tested]then[suite-badge--info]] +[join[ ]] }}}>{{!!status}}</span>
+                  <%endif%>
+                  <%if [{!!cuisine}!is[blank]] %>
+                    <span class="tw-recipe-sidebar-cuisine">{{!!cuisine}}</span>
+                  <%endif%>
+                  <span class="tw-recipe-sidebar-count suite-tabular-nums"><<cookCount>>×</span>
+                </div>
+              </article>
+            </$let>
+          </$tiddler>
+        </$list>
+      </div>
+    </div>
+  </$let>
+  <div class="tw-recipe-sidebar-section">
+    <div class="tw-recipe-sidebar-heading-row">
+      <h3 class="tw-recipe-sidebar-heading">Recent Cook Logs</h3>
+    </div>
+    <div class="tw-recipe-sidebar-list">
+      <$list filter="[tag[CookLog]!has[draft.of]!sort[cook-date]limit[5]]" variable="log" emptyMessage="<div class='suite-empty-state tw-recipe-sidebar-empty'>No cook sessions logged yet.</div>">
+        <$tiddler tiddler=<<log>>>
+          <article class="tw-recipe-sidebar-card suite-card suite-card--compact">
+            <div class="tw-recipe-sidebar-card-top">
+              <strong class="suite-tabular-nums"><$link to=<<log>>>{{!!cook-date}}</$link></strong>
+              <%if [{!!session-rating}!is[blank]] %>
+                <span class="suite-badge suite-badge--warning suite-tabular-nums">★ {{!!session-rating}}/5</span>
+              <%endif%>
+            </div>
+            <div class="tw-recipe-sidebar-log-recipe">
+              <$link to={{!!recipe}}>{{!!recipe}}</$link>
+              <%if [{!!scale-used}!is[blank]] %>
+                <span class="tw-recipe-sidebar-count suite-tabular-nums">({{!!scale-used}})</span>
+              <%endif%>
+            </div>
+            <%if [{!!next-time}!is[blank]] %>
+              <div class="tw-recipe-sidebar-log-note">
+                <strong>Next time:</strong> {{!!next-time}}
+              </div>
+            <%elseif [{!!modifications}!is[blank]] %>
+              <div class="tw-recipe-sidebar-log-note">
+                {{!!modifications}}
+              </div>
+            <%endif%>
+          </article>
+        </$tiddler>
+      </$list>
+    </div>
+  </div>
+</div>

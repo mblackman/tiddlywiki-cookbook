@@ -20,6 +20,18 @@ type: text/vnd.tiddlywiki
 [<qty>trim[]split[ ]!is[blank]] :map[f.eval-Token<currentTiddler>] +[sum[]multiply<factor>multiply[100]round[]divide[100]]
 \end
 
+\function f.filter-By-Type(selType)
+[<selType>is[blank]then<currentTiddler>] :else[<currentTiddler>field:dish-type<selType>]
+\end
+
+\function f.filter-By-Status(selStatus)
+[<selStatus>is[blank]then<currentTiddler>] :else[<currentTiddler>field:status<selStatus>]
+\end
+
+\function f.filter-By-Query(selQuery)
+[<selQuery>is[blank]then<currentTiddler>] :else[<currentTiddler>search:title,cuisine,ingredients,text<selQuery>]
+\end
+
 \procedure ing(qty:"", unit:"", item:"", note:"")
 <$let
   recipeTarget={{{ [<storyTiddler>!is[blank]else<currentTiddler>] }}}
