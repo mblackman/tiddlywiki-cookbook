@@ -301,4 +301,29 @@ describe("Cookbook Plugin ($:/plugins/mblackman/cookbook)", () => {
       $tw.wiki.deleteTiddler(filterState);
     }
   });
+
+  test("action-Create-Recipe populates default equipment title list without filter syntax error", () => {
+    const parser = $tw.wiki.parseText("text/vnd.tiddlywiki", "");
+    const widgetNode = $tw.wiki.makeWidget(parser, {
+      document: $tw.fakeDocument,
+    });
+    const container = $tw.fakeDocument.createElement("div");
+    let capturedEvent = null;
+    widgetNode.addEventListener("tm-new-tiddler", (event) => {
+      capturedEvent = event;
+      return false;
+    });
+    widgetNode.render(container, null);
+    widgetNode.invokeActionString(
+      "\\import [[$:/plugins/mblackman/cookbook/procedures]]\n<<action-Create-Recipe>>",
+      widgetNode,
+      {}
+    );
+
+    expect(capturedEvent).not.toBeNull();
+    expect(capturedEvent.paramObject.equipment).toBe(
+      "[[Chef's Knife]] [[Large Skillet]]"
+    );
+    expect(capturedEvent.paramObject.equipment).not.toContain("Filter error");
+  });
 });

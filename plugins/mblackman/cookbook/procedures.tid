@@ -106,7 +106,8 @@ type: text/vnd.tiddlywiki
   defYieldUnit={{{ [[$:/config/cookbook/default-yield-unit]get[text]!is[blank]else[servings]] }}}
   defPrepTime={{{ [[$:/config/cookbook/default-prep-time]get[text]!is[blank]else[15 mins]] }}}
   defCookTime={{{ [[$:/config/cookbook/default-cook-time]get[text]!is[blank]else[30 mins]] }}}
-  defEquipment={{{ [[$:/config/cookbook/default-equipment]get[text]!is[blank]else[[[Chef's Knife]] [[Large Skillet]]]] }}}
+  fallbackEquipment="[[Chef's Knife]] [[Large Skillet]]"
+  defEquipment={{{ [[$:/config/cookbook/default-equipment]get[text]!is[blank]else<fallbackEquipment>] }}}
 >
   <$action-sendmessage
     $message="tm-new-tiddler"
