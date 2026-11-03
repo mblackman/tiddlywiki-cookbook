@@ -1,0 +1,597 @@
+title: $:/plugins/mblackman/cookbook/ui/EditTemplate/recipe
+type: text/vnd.tiddlywiki
+
+\import [[$:/plugins/mblackman/cookbook/procedures]]
+
+<$let
+  ingModeState={{{ [[$:/temp/recipe/editor/ing-mode/]addsuffix<currentTiddler>] }}}
+  revState={{{ [[$:/temp/recipe/editor/rev/]addsuffix<currentTiddler>] }}}
+  equipInputTemp={{{ [[$:/temp/recipe/editor/equip/]addsuffix<currentTiddler>] }}}
+  quickIngTemp={{{ [[$:/temp/recipe/editor/quick-ing/]addsuffix<currentTiddler>] }}}
+  draftBaseMod={{{ [{!!draft.of}get[modified]!is[blank]else[new]] }}}
+>
+<div class="tw-recipe-container tw-recipe-editor suite-container">
+
+  <!-- 1. CLASSIFICATION, STATUS & RATING -->
+  <div class="tw-recipe-editor-card suite-card">
+    <div class="tw-recipe-editor-section-header">
+      <h3 class="tw-recipe-section-title">1. Classification, Status &amp; Rating</h3>
+      <span class="tw-recipe-editor-hint">Click any preset pill or type your own custom value.</span>
+    </div>
+
+    <div class="tw-recipe-editor-top-controls">
+      <!-- Status Pill Selector -->
+      <div class="tw-recipe-editor-field-block">
+        <span class="tw-recipe-field-label-text">Recipe Status</span>
+        <div class="tw-recipe-pill-selector" role="group" aria-label="Recipe Status">
+          <$list filter="[[To Try]] [[Tested]] [[Staple]]" variable="st">
+            <$button
+              class={{{ [{!!status}match<st>then[suite-chip tw-recipe-btn tw-recipe-btn-active is-active]else[suite-chip tw-recipe-btn]] }}}
+              aria-pressed={{{ [{!!status}match<st>then[true]else[false]] }}}
+            >
+              <$action-setfield $field="status" $value=<<st>>/>
+              <%if [<st>match[To Try]] %>📋 To Try<%elseif [<st>match[Tested]] %>🧪 Tested<%else%>⭐ Staple<%endif%>
+            </$button>
+          </$list>
+        </div>
+      </div>
+
+      <!-- 1-5 Star Rating Picker -->
+      <div class="tw-recipe-editor-field-block">
+        <span class="tw-recipe-field-label-text">Overall Rating</span>
+        <div class="tw-recipe-pill-selector" role="group" aria-label="Overall Rating">
+          <$list filter="1 2 3 4 5" variable="stars">
+            <$button
+              class={{{ [{!!rating}match<stars>then[suite-chip tw-recipe-btn tw-recipe-star-btn tw-recipe-btn-active is-active]else[suite-chip tw-recipe-btn tw-recipe-star-btn]] }}}
+              aria-pressed={{{ [{!!rating}match<stars>then[true]else[false]] }}}
+              tooltip={{{ [[Rate ]addsuffix<stars>addsuffix[ out of 5 stars]] }}}
+            >
+              <$action-setfield $field="rating" $value=<<stars>>/>
+              <span class="suite-tabular-nums">★ <<stars>></span>
+            </$button>
+          </$list>
+          <%if [{!!rating}!is[blank]] %>
+            <$button class="suite-chip tw-recipe-btn tw-recipe-btn-ghost" tooltip="Clear rating">
+              <$action-setfield $field="rating" $value=""/>
+              Clear
+            </$button>
+          <%endif%>
+        </div>
+      </div>
+    </div>
+
+    <div class="tw-recipe-editor-grid-2">
+      <!-- Dish Type Input + Quick Chips -->
+      <div class="tw-recipe-editor-field-block">
+        <label class="tw-recipe-field-label">
+          <span>Dish Type</span>
+          <$edit-text field="dish-type" tag="input" class="suite-input tw-recipe-input" placeholder="e.g. Main, Baking, Sauce, Soup, Dessert..."/>
+        </label>
+        <div class="tw-recipe-preset-chips">
+          <$list filter="[[Main]] [[Baking]] [[Sauce]] [[Side]] [[Soup]] [[Salad]] [[Breakfast]] [[Dessert]] [[Snack]] [[Drink]] [tag[Recipe]!has[draft.of]each[dish-type]get[dish-type]!is[blank]] +[unique[]]" variable="dt">
+            <$button
+              class={{{ [{!!dish-type}match<dt>then[suite-chip tw-recipe-chip-xs tw-recipe-btn-active is-active]else[suite-chip tw-recipe-chip-xs]] }}}
+              aria-pressed={{{ [{!!dish-type}match<dt>then[true]else[false]] }}}
+            >
+              <$action-setfield $field="dish-type" $value=<<dt>>/>
+              <<dt>>
+            </$button>
+          </$list>
+        </div>
+      </div>
+
+      <!-- Cuisine Input + Quick Chips -->
+      <div class="tw-recipe-editor-field-block">
+        <label class="tw-recipe-field-label">
+          <span>Cuisine / Style</span>
+          <$edit-text field="cuisine" tag="input" class="suite-input tw-recipe-input" placeholder="e.g. Italian, Mexican, Japanese, French..."/>
+        </label>
+        <div class="tw-recipe-preset-chips">
+          <$list filter="[[Italian]] [[Italian-American]] [[Mexican]] [[American]] [[Japanese]] [[Chinese]] [[Thai]] [[Indian]] [[French]] [[Mediterranean]] [tag[Recipe]!has[draft.of]each[cuisine]get[cuisine]!is[blank]] +[unique[]]" variable="cz">
+            <$button
+              class={{{ [{!!cuisine}match<cz>then[suite-chip tw-recipe-chip-xs tw-recipe-btn-active is-active]else[suite-chip tw-recipe-chip-xs]] }}}
+              aria-pressed={{{ [{!!cuisine}match<cz>then[true]else[false]] }}}
+            >
+              <$action-setfield $field="cuisine" $value=<<cz>>/>
+              <<cz>>
+            </$button>
+          </$list>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. TIMING, OVEN TEMP & BATCH YIELD -->
+  <div class="tw-recipe-editor-card suite-card">
+    <div class="tw-recipe-editor-section-header">
+      <h3 class="tw-recipe-section-title">2. Timing, Oven &amp; Batch Yield</h3>
+      <span class="tw-recipe-editor-hint">Base Servings powers automatic ingredient scaling across the recipe.</span>
+    </div>
+
+    <div class="tw-recipe-editor-grid-3">
+      <!-- Prep Time -->
+      <div class="tw-recipe-editor-field-block">
+        <label class="tw-recipe-field-label">
+          <span>Prep Time</span>
+          <$edit-text field="prep-time" tag="input" class="suite-input tw-recipe-input suite-tabular-nums" placeholder="e.g. 15 mins, 20 mins (+2h rise)"/>
+        </label>
+        <div class="tw-recipe-preset-chips">
+          <$list filter="[[5 mins]] [[10 mins]] [[15 mins]] [[20 mins]] [[30 mins]] [[45 mins]] [[1 hr]]" variable="pt">
+            <$button
+              class={{{ [{!!prep-time}match<pt>then[suite-chip tw-recipe-chip-xs tw-recipe-btn-active is-active]else[suite-chip tw-recipe-chip-xs]] }}}
+            >
+              <$action-setfield $field="prep-time" $value=<<pt>>/>
+              <span class="suite-tabular-nums"><<pt>></span>
+            </$button>
+          </$list>
+        </div>
+      </div>
+
+      <!-- Cook Time -->
+      <div class="tw-recipe-editor-field-block">
+        <label class="tw-recipe-field-label">
+          <span>Cook Time</span>
+          <$edit-text field="cook-time" tag="input" class="suite-input tw-recipe-input suite-tabular-nums" placeholder="e.g. 30 mins, 14 mins, 0 mins"/>
+        </label>
+        <div class="tw-recipe-preset-chips">
+          <$list filter="[[0 mins]] [[10 mins]] [[15 mins]] [[20 mins]] [[30 mins]] [[45 mins]] [[1 hr]]" variable="ct">
+            <$button
+              class={{{ [{!!cook-time}match<ct>then[suite-chip tw-recipe-chip-xs tw-recipe-btn-active is-active]else[suite-chip tw-recipe-chip-xs]] }}}
+            >
+              <$action-setfield $field="cook-time" $value=<<ct>>/>
+              <span class="suite-tabular-nums"><<ct>></span>
+            </$button>
+          </$list>
+        </div>
+      </div>
+
+      <!-- Oven / Cooking Temp -->
+      <div class="tw-recipe-editor-field-block">
+        <label class="tw-recipe-field-label">
+          <span>Oven / Cooking Temp</span>
+          <$edit-text field="oven-temp" tag="input" class="suite-input tw-recipe-input suite-tabular-nums" placeholder="e.g. 400°F / 205°C, Medium skillet"/>
+        </label>
+        <div class="tw-recipe-preset-chips">
+          <$list filter="[[350°F / 175°C]] [[375°F / 190°C]] [[400°F / 205°C]] [[425°F / 220°C]] [[450°F / 230°C]] [[500°F / 260°C]] [[Stovetop]] [[No-Cook]]" variable="ot">
+            <$button
+              class={{{ [{!!oven-temp}match<ot>then[suite-chip tw-recipe-chip-xs tw-recipe-btn-active is-active]else[suite-chip tw-recipe-chip-xs]] }}}
+            >
+              <$action-setfield $field="oven-temp" $value=<<ot>>/>
+              <span class="suite-tabular-nums"><<ot>></span>
+            </$button>
+          </$list>
+        </div>
+      </div>
+    </div>
+
+    <div class="tw-recipe-editor-grid-2 tw-recipe-editor-row-spaced">
+      <!-- Base Servings Stepper + Input -->
+      <div class="tw-recipe-editor-field-block">
+        <span class="tw-recipe-field-label-text">Base Yield Amount (Number)</span>
+        <div class="tw-recipe-stepper-row">
+          <$button class="suite-btn tw-recipe-btn tw-recipe-stepper-btn" tooltip="Decrease base yield" aria-label="Decrease base yield">
+            <$let curSrv={{{ [{!!base-servings}!is[blank]else[4]] }}}>
+              <$action-setfield $field="base-servings" $value={{{ [<curSrv>subtract[1]max[1]] }}}/>
+            </$let>
+            −
+          </$button>
+          <label class="tw-recipe-stepper-input-label">
+            <span class="tw-recipe-visually-hidden">Base Yield Amount</span>
+            <$edit-text field="base-servings" tag="input" class="suite-input tw-recipe-input tw-recipe-servings-input suite-tabular-nums" placeholder="4"/>
+          </label>
+          <$button class="suite-btn tw-recipe-btn tw-recipe-stepper-btn" tooltip="Increase base yield" aria-label="Increase base yield">
+            <$let curSrv={{{ [{!!base-servings}!is[blank]else[4]] }}}>
+              <$action-setfield $field="base-servings" $value={{{ [<curSrv>add[1]] }}}/>
+            </$let>
+            +
+          </$button>
+          <div class="tw-recipe-preset-chips">
+            <$list filter="1 2 4 6 8 12" variable="srv">
+              <$button
+                class={{{ [{!!base-servings}match<srv>then[suite-chip tw-recipe-chip-xs tw-recipe-btn-active is-active]else[suite-chip tw-recipe-chip-xs]] }}}
+              >
+                <$action-setfield $field="base-servings" $value=<<srv>>/>
+                <span class="suite-tabular-nums"><<srv>></span>
+              </$button>
+            </$list>
+          </div>
+        </div>
+      </div>
+
+      <!-- Yield Unit -->
+      <div class="tw-recipe-editor-field-block">
+        <label class="tw-recipe-field-label">
+          <span>Yield Unit</span>
+          <$edit-text field="yield-unit" tag="input" class="suite-input tw-recipe-input" placeholder="e.g. servings, loaves, 10-inch pizzas, cups..."/>
+        </label>
+        <div class="tw-recipe-preset-chips">
+          <$list filter="[[servings]] [[portions]] [[pizzas]] [[loaves]] [[cups]] [[cookies]] [[jars]]" variable="yu">
+            <$button
+              class={{{ [{!!yield-unit}match<yu>then[suite-chip tw-recipe-chip-xs tw-recipe-btn-active is-active]else[suite-chip tw-recipe-chip-xs]] }}}
+            >
+              <$action-setfield $field="yield-unit" $value=<<yu>>/>
+              <<yu>>
+            </$button>
+          </$list>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. EQUIPMENT & COOKWARE BUILDER -->
+  <div class="tw-recipe-editor-card suite-card">
+    <div class="tw-recipe-editor-section-header">
+      <h3 class="tw-recipe-section-title">3. Equipment &amp; Cookware</h3>
+      <span class="tw-recipe-editor-hint">Add tools with one click or type a name below—no brackets needed.</span>
+    </div>
+
+    <!-- Active Equipment Chips -->
+    <div class="tw-recipe-equip-active-list">
+      <$list filter="[enlist{!!equipment}]" variable="eq" emptyMessage="<span class='tw-recipe-editor-empty-inline'>No equipment selected yet. Click a suggestion below or add your own.</span>">
+        <span class="suite-badge suite-badge--accent tw-recipe-equip-edit-chip">
+          <span><<eq>></span>
+          <$button class="tw-recipe-chip-remove" tooltip={{{ [[Remove ]addsuffix<eq>] }}} aria-label={{{ [[Remove ]addsuffix<eq>] }}}>
+            <$action-listops $field="equipment" $subfilter="-[<eq>]"/>
+            ✕
+          </$button>
+        </span>
+      </$list>
+    </div>
+
+    <!-- Custom Equipment Input + Add Button -->
+    <div class="tw-recipe-equip-add-bar">
+      <$keyboard key="enter" actions=<<equip-Add-Custom>>>
+        <label class="tw-recipe-equip-input-label">
+          <span class="tw-recipe-visually-hidden">Custom cookware or tool name</span>
+          <$edit-text tiddler=<<equipInputTemp>> field="text" tag="input" class="suite-input tw-recipe-input" placeholder="Type cookware or tool name (e.g. Dutch Oven, Stand Mixer) and press Enter..."/>
+        </label>
+      </$keyboard>
+      <$button class="suite-btn suite-btn--primary tw-recipe-btn tw-recipe-btn-primary" actions=<<equip-Add-Custom>>>
+        + Add Equipment
+      </$button>
+    </div>
+
+    <!-- Quick-Add Equipment Suggestions -->
+    <div class="tw-recipe-preset-chips tw-recipe-equip-suggestions">
+      <span class="tw-recipe-chip-group-label">Quick add:</span>
+      <$list filter="[[Chef's Knife]] [[Large Skillet]] [[10-Inch Cast Iron Skillet]] [[Dutch Oven]] [[Baking Sheet]] [[Digital Kitchen Scale]] [[Immersion Blender]] [[Mixing Bowl]] [[Saucepan]] [[Stand Mixer]] [[Wire Rack]] [tag[Recipe]!has[draft.of]get[equipment]enlist-input[]] +[unique[]sort[]] -[enlist{!!equipment}]" variable="sugEq">
+        <$button class="suite-chip tw-recipe-chip-xs" tooltip={{{ [[Add ]addsuffix<sugEq>] }}}>
+          <$action-listops $field="equipment" $subfilter="+[<sugEq>]"/>
+          + <<sugEq>>
+        </$button>
+      </$list>
+    </div>
+  </div>
+
+  <!-- 4. INTERACTIVE INGREDIENTS & SCALING BUILDER -->
+  <div class="tw-recipe-editor-card suite-card">
+    <div class="tw-recipe-editor-section-header">
+      <div>
+        <h3 class="tw-recipe-section-title">
+          4. Ingredients &amp; Mise en Place List
+          <span class="suite-badge suite-tabular-nums"><$text text={{{ [{!!ingredients}splitregexp[\n]!is[blank]!prefix[#]count[]] }}}/> items</span>
+        </h3>
+        <span class="tw-recipe-editor-hint">Supports whole numbers, decimals, and fractions (`1/2`, `1 1/2`) for live batch scaling.</span>
+      </div>
+      <div class="tw-recipe-ing-mode-switch" role="group" aria-label="Ingredient Editor Mode">
+        <$button
+          class={{{ [<ingModeState>get[text]!match[bulk]then[suite-chip tw-recipe-btn tw-recipe-btn-active is-active]else[suite-chip tw-recipe-btn]] }}}
+          aria-pressed={{{ [<ingModeState>get[text]!match[bulk]then[true]else[false]] }}}
+        >
+          <$action-setfield $tiddler=<<ingModeState>> text="visual"/>
+          <<ing-Bump-Rev>>
+          Visual Row Builder
+        </$button>
+        <$button
+          class={{{ [<ingModeState>get[text]match[bulk]then[suite-chip tw-recipe-btn tw-recipe-btn-active is-active]else[suite-chip tw-recipe-btn]] }}}
+          aria-pressed={{{ [<ingModeState>get[text]match[bulk]then[true]else[false]] }}}
+        >
+          <$action-setfield $tiddler=<<ingModeState>> text="bulk"/>
+          Bulk Text (Pipe Syntax)
+        </$button>
+      </div>
+    </div>
+
+    <%if [<ingModeState>get[text]match[bulk]] %>
+      <!-- BULK TEXT / PIPE SYNTAX MODE -->
+      <div class="tw-recipe-ing-bulk-box">
+        <div class="suite-panel-subtle tw-recipe-syntax-help">
+          <strong>Pipe Syntax Format:</strong> One ingredient per line as <code>qty | unit | [[Ingredient Name]] | optional prep note</code>, or start a line with <code># Section Name</code> for group headings.
+        </div>
+        <label class="tw-recipe-field-label">
+          <span class="tw-recipe-visually-hidden">Ingredients Pipe Syntax List</span>
+          <$edit-text field="ingredients" tag="textarea" autoHeight="no" rows="6" class="suite-textarea tw-recipe-textarea tw-recipe-mono-textarea" placeholder="# Main Components&#10;400 | g | [[Bread Flour]] | sifted&#10;1/2 | tsp | [[Fine Sea Salt]] |"/>
+        </label>
+      </div>
+    <%else%>
+      <!-- VISUAL ROW BUILDER MODE -->
+      <div class="tw-recipe-ing-builder">
+        <div class="tw-recipe-ing-builder-head" aria-hidden="true">
+          <span>Qty</span>
+          <span>Unit</span>
+          <span>Ingredient (Auto-Linked)</span>
+          <span>Prep / Brand Note</span>
+          <span>Order</span>
+        </div>
+
+        <div class="tw-recipe-ing-builder-rows">
+          <$list filter="[f.line-Indices{!!ingredients}]" variable="rowIdx" emptyMessage="<div class='suite-empty-state tw-recipe-ing-empty'>No ingredients yet. Use the Quick-Add bar or buttons below to add your first ingredient or section!</div>">
+            <$let
+              rev={{{ [<revState>get[text]!is[blank]else[0]] }}}
+              rowTemp={{{ [[$:/temp/recipe/editor/row/]addsuffix<currentTiddler>addsuffix[/]addsuffix<draftBaseMod>addsuffix[/]addsuffix<rev>addsuffix[/]addsuffix<rowIdx>] }}}
+              isSection={{{ [f.line-At{!!ingredients},<rowIdx>prefix[#]then[yes]else[no]] }}}
+            >
+              <%if [<isSection>match[yes]] %>
+                <!-- SECTION HEADER ROW -->
+                <div class="tw-recipe-ing-editor-row tw-recipe-ing-editor-section">
+                  <span class="suite-badge suite-badge--accent tw-recipe-sec-badge">📂 Section</span>
+                  <label class="tw-recipe-ing-cell-label tw-recipe-ing-col-sec">
+                    <span class="tw-recipe-ing-mobile-label">Section Heading</span>
+                    <$edit-text
+                      tiddler=<<rowTemp>>
+                      field="sec"
+                      tag="input"
+                      default={{{ [<rowTemp>has[init-sec]get[init-sec]] :else[f.line-Section-Clean{!!ingredients},<rowIdx>] }}}
+                      inputActions=<<ing-Sync-Section>>
+                      class="suite-input tw-recipe-input tw-recipe-sec-input"
+                      placeholder="Section heading (e.g. Dough, Sauce, Assembly & Garnish)"
+                    />
+                  </label>
+                  <div class="tw-recipe-ing-row-actions">
+                    <$button class="suite-btn tw-recipe-btn tw-recipe-row-icon-btn" actions=<<ing-Move-Up>> disabled={{{ [<rowIdx>match[1]then[yes]else[no]] }}} tooltip="Move row up" aria-label="Move section up">↑</$button>
+                    <$button class="suite-btn tw-recipe-btn tw-recipe-row-icon-btn" actions=<<ing-Move-Down>> disabled={{{ [{!!ingredients}splitregexp[\n]!is[blank]count[]match<rowIdx>then[yes]else[no]] }}} tooltip="Move row down" aria-label="Move section down">↓</$button>
+                    <$button class="suite-btn tw-recipe-btn tw-recipe-row-icon-btn tw-recipe-row-delete-btn" actions=<<ing-Delete-Row>> tooltip="Remove section" aria-label="Remove section">✕</$button>
+                  </div>
+                </div>
+              <%else%>
+                <!-- INGREDIENT 4-COLUMN ROW -->
+                <div class="tw-recipe-ing-editor-row">
+                  <label class="tw-recipe-ing-cell-label tw-recipe-ing-col-qty">
+                    <span class="tw-recipe-ing-mobile-label">Qty</span>
+                    <$edit-text
+                      tiddler=<<rowTemp>>
+                      field="qty"
+                      tag="input"
+                      default={{{ [<rowTemp>has[init-qty]get[init-qty]] :else[f.line-Part{!!ingredients},<rowIdx>,[1]] }}}
+                      inputActions=<<ing-Sync-Qty>>
+                      class="suite-input tw-recipe-input suite-tabular-nums"
+                      placeholder="Qty (2, 1/2)"
+                    />
+                  </label>
+                  <label class="tw-recipe-ing-cell-label tw-recipe-ing-col-unit">
+                    <span class="tw-recipe-ing-mobile-label">Unit</span>
+                    <$edit-text
+                      tiddler=<<rowTemp>>
+                      field="unit"
+                      tag="input"
+                      default={{{ [<rowTemp>has[init-unit]get[init-unit]] :else[f.line-Part{!!ingredients},<rowIdx>,[2]] }}}
+                      inputActions=<<ing-Sync-Unit>>
+                      class="suite-input tw-recipe-input"
+                      placeholder="Unit (g, tbsp)"
+                    />
+                  </label>
+                  <label class="tw-recipe-ing-cell-label tw-recipe-ing-col-item">
+                    <span class="tw-recipe-ing-mobile-label">Ingredient (Auto-Linked)</span>
+                    <$edit-text
+                      tiddler=<<rowTemp>>
+                      field="item"
+                      tag="input"
+                      default={{{ [<rowTemp>has[init-item]get[init-item]] :else[f.line-Item-Clean{!!ingredients},<rowIdx>] }}}
+                      inputActions=<<ing-Sync-Item>>
+                      class="suite-input tw-recipe-input"
+                      placeholder="Ingredient name (e.g. Bread Flour)"
+                    />
+                  </label>
+                  <label class="tw-recipe-ing-cell-label tw-recipe-ing-col-note">
+                    <span class="tw-recipe-ing-mobile-label">Prep / Brand Note</span>
+                    <$edit-text
+                      tiddler=<<rowTemp>>
+                      field="note"
+                      tag="input"
+                      default={{{ [<rowTemp>has[init-note]get[init-note]] :else[f.line-Part{!!ingredients},<rowIdx>,[4]] }}}
+                      inputActions=<<ing-Sync-Note>>
+                      class="suite-input tw-recipe-input"
+                      placeholder="Prep note (sifted, finely diced)"
+                    />
+                  </label>
+                  <div class="tw-recipe-ing-row-actions">
+                    <$button class="suite-btn tw-recipe-btn tw-recipe-row-icon-btn" actions=<<ing-Move-Up>> disabled={{{ [<rowIdx>match[1]then[yes]else[no]] }}} tooltip="Move ingredient up" aria-label="Move ingredient up">↑</$button>
+                    <$button class="suite-btn tw-recipe-btn tw-recipe-row-icon-btn" actions=<<ing-Move-Down>> disabled={{{ [{!!ingredients}splitregexp[\n]!is[blank]count[]match<rowIdx>then[yes]else[no]] }}} tooltip="Move ingredient down" aria-label="Move ingredient down">↓</$button>
+                    <$button class="suite-btn tw-recipe-btn tw-recipe-row-icon-btn tw-recipe-row-delete-btn" actions=<<ing-Delete-Row>> tooltip="Remove ingredient" aria-label="Remove ingredient">✕</$button>
+                  </div>
+                </div>
+              <%endif%>
+            </$let>
+          </$list>
+        </div>
+
+        <!-- GUIDED QUICK-ADD INGREDIENT BAR -->
+        <div class="tw-recipe-ing-quickadd suite-panel-subtle">
+          <div class="tw-recipe-ing-quickadd-title">⚡ Quick-Add Ingredient (with Common Units)</div>
+          <$keyboard key="enter" actions=<<ing-Quick-Add-Submit>>>
+            <div class="tw-recipe-ing-quickadd-grid">
+              <label class="tw-recipe-field-label">
+                <span>Qty</span>
+                <$edit-text tiddler=<<quickIngTemp>> field="qty" tag="input" class="suite-input tw-recipe-input suite-tabular-nums" placeholder="e.g. 2, 1/2, 400"/>
+              </label>
+              <label class="tw-recipe-field-label">
+                <span>Unit</span>
+                <$select tiddler=<<quickIngTemp>> field="unit" default="" class="suite-select tw-recipe-select">
+                  <option value="">(None / Whole Item)</option>
+                  <optgroup label="Volume (Spoons &amp; Cups)">
+                    <option value="tsp">tsp (teaspoon)</option>
+                    <option value="tbsp">tbsp (tablespoon)</option>
+                    <option value="cup">cup</option>
+                    <option value="cups">cups</option>
+                    <option value="ml">ml</option>
+                    <option value="L">L (liter)</option>
+                    <option value="fl oz">fl oz</option>
+                    <option value="pint">pint</option>
+                    <option value="quart">quart</option>
+                  </optgroup>
+                  <optgroup label="Weight (Metric &amp; Imperial)">
+                    <option value="g">g (grams)</option>
+                    <option value="kg">kg (kilograms)</option>
+                    <option value="oz">oz (ounces)</option>
+                    <option value="lb">lb (pounds)</option>
+                  </optgroup>
+                  <optgroup label="Count &amp; Culinary">
+                    <option value="clove">clove</option>
+                    <option value="cloves">cloves</option>
+                    <option value="pinch">pinch</option>
+                    <option value="dash">dash</option>
+                    <option value="medium">medium</option>
+                    <option value="large">large</option>
+                    <option value="small">small</option>
+                    <option value="can">can</option>
+                    <option value="28-oz can">28-oz can</option>
+                    <option value="14-oz can">14-oz can</option>
+                    <option value="bunch">bunch</option>
+                    <option value="sprig">sprig</option>
+                    <option value="sprigs">sprigs</option>
+                    <option value="slice">slice</option>
+                    <option value="slices">slices</option>
+                    <option value="to taste">to taste</option>
+                  </optgroup>
+                </$select>
+              </label>
+              <label class="tw-recipe-field-label">
+                <span>Ingredient Name</span>
+                <$edit-text tiddler=<<quickIngTemp>> field="item" tag="input" class="suite-input tw-recipe-input" placeholder="e.g. Garlic, Olive Oil, Bread Flour"/>
+              </label>
+              <label class="tw-recipe-field-label">
+                <span>Prep / Brand Note</span>
+                <$edit-text tiddler=<<quickIngTemp>> field="note" tag="input" class="suite-input tw-recipe-input" placeholder="e.g. minced, room temp, divided"/>
+              </label>
+              <div class="tw-recipe-ing-quickadd-btn-wrap">
+                <$button class="suite-btn suite-btn--primary tw-recipe-btn tw-recipe-btn-primary" actions=<<ing-Quick-Add-Submit>>>
+                  + Add Ingredient
+                </$button>
+              </div>
+            </div>
+          </$keyboard>
+
+          <div class="tw-recipe-ing-builder-footer">
+            <$button class="suite-btn tw-recipe-btn" actions=<<ing-Add-Blank-Row>>>
+              + Add Blank Ingredient Row
+            </$button>
+            <$button class="suite-btn tw-recipe-btn" actions=<<ing-Add-Section-Row>>>
+              + Add Section Header (e.g. # Dough, # Sauce)
+            </$button>
+          </div>
+        </div>
+      </div>
+    <%endif%>
+  </div>
+
+  <!-- 5. DIRECTIONS & STEP-BY-STEP INSTRUCTIONS -->
+  <div class="tw-recipe-editor-card suite-card">
+    <div class="tw-recipe-editor-section-header">
+      <div>
+        <h3 class="tw-recipe-section-title">5. Step-by-Step Directions &amp; Notes</h3>
+        <span class="tw-recipe-editor-hint">Use the quick-insert buttons below to add numbered steps, section headings, or linked ingredients.</span>
+      </div>
+    </div>
+
+    <!-- Quick-Insert Step & Structure Toolbar -->
+    <div class="tw-recipe-directions-helper-bar suite-panel-subtle">
+      <div class="tw-recipe-directions-helper-row">
+        <span class="tw-recipe-chip-group-label">Insert structure:</span>
+        <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small">
+          <$let nextText={{{ [{!!text}trim[]!is[blank]addsuffix<f.lf>addsuffix[# ''Step:'' ]] :else[[# ''Step:'' ]] }}}>
+            <$action-setfield $field="text" $value=<<nextText>>/>
+          </$let>
+          + Numbered Step (#)
+        </$button>
+        <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small">
+          <$let nextText={{{ [{!!text}trim[]!is[blank]addsuffix<f.lf>addsuffix<f.lf>addsuffix[!!! Section Heading]addsuffix<f.lf>addsuffix<f.lf>addsuffix[# ]] :else[[!!! Directions]addsuffix<f.lf>addsuffix<f.lf>addsuffix[# ]] }}}>
+            <$action-setfield $field="text" $value=<<nextText>>/>
+          </$let>
+          + Section Heading (!!!)
+        </$button>
+        <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small">
+          <$let nextText={{{ [{!!text}trim[]!is[blank]addsuffix<f.lf>addsuffix[* ]] :else[[* ]] }}}>
+            <$action-setfield $field="text" $value=<<nextText>>/>
+          </$let>
+          + Bullet Note (*)
+        </$button>
+        <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small">
+          <$let nextText={{{ [{!!text}trim[]!is[blank]addsuffix<f.lf>addsuffix<f.lf>addsuffix[> ''Chef's Tip:'' ]] :else[[> ''Chef's Tip:'' ]] }}}>
+            <$action-setfield $field="text" $value=<<nextText>>/>
+          </$let>
+          + Chef's Tip Callout
+        </$button>
+      </div>
+
+      <!-- One-Click Ingredient & Equipment Link Chips -->
+      <%if [f.recipe-Ingredient-Names{!!ingredients}] [enlist{!!equipment}] +[count[]compare:number:gt[0]] %>
+        <div class="tw-recipe-directions-helper-row tw-recipe-link-chips-row">
+          <span class="tw-recipe-chip-group-label">Append link to step:</span>
+          <$list filter="[f.recipe-Ingredient-Names{!!ingredients}]" variable="ingName">
+            <$button class="suite-chip tw-recipe-chip-xs" tooltip={{{ [[Append ]addsuffix<ingName>addsuffix[ link to directions]] }}}>
+              <$let
+                wrapped={{{ [f.wrap-Link<ingName>] }}}
+                nextText={{{ [{!!text}!is[blank]addsuffix[ ]addsuffix<wrapped>] :else[<wrapped>] }}}
+              >
+                <$action-setfield $field="text" $value=<<nextText>>/>
+              </$let>
+              🥘 <<ingName>>
+            </$button>
+          </$list>
+          <$list filter="[enlist{!!equipment}]" variable="eqName">
+            <$button class="suite-chip tw-recipe-chip-xs" tooltip={{{ [[Append ]addsuffix<eqName>addsuffix[ link to directions]] }}}>
+              <$let
+                wrapped={{{ [f.wrap-Link<eqName>] }}}
+                nextText={{{ [{!!text}!is[blank]addsuffix[ ]addsuffix<wrapped>] :else[<wrapped>] }}}
+              >
+                <$action-setfield $field="text" $value=<<nextText>>/>
+              </$let>
+              🍳 <<eqName>>
+            </$button>
+          </$list>
+        </div>
+      <%endif%>
+    </div>
+
+    <div class="tw-recipe-directions-editor-wrap">
+      <$transclude tiddler="$:/core/ui/EditTemplate/body/default"/>
+    </div>
+  </div>
+
+  <!-- 6. PINNED KITCHEN TWEAKS & SOURCE ATTRIBUTION -->
+  <div class="tw-recipe-editor-card suite-card">
+    <div class="tw-recipe-editor-section-header">
+      <h3 class="tw-recipe-section-title">6. Pinned Kitchen Tweaks &amp; Source Attribution</h3>
+      <span class="tw-recipe-editor-hint">Pinned tweaks appear in a high-visibility callout banner at the top of the recipe.</span>
+    </div>
+
+    <div class="tw-recipe-pinned-banner tw-recipe-pinned-editor-box">
+      <div class="tw-recipe-pinned-editor-header">
+        <strong>📌 Pinned Kitchen Notes &amp; Tweaks (Read Before Cooking)</strong>
+        <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small">
+          <$let nextPin={{{ [{!!pinned-tweaks}trim[]!is[blank]addsuffix<f.lf>addsuffix[* ]] :else[[* ]] }}}>
+            <$action-setfield $field="pinned-tweaks" $value=<<nextPin>>/>
+          </$let>
+          + Add Bullet Tweak (*)
+        </$button>
+      </div>
+      <label class="tw-recipe-field-label">
+        <span class="tw-recipe-visually-hidden">Pinned Kitchen Notes and Tweaks</span>
+        <$edit-text field="pinned-tweaks" tag="textarea" autoHeight="no" rows="3" class="suite-textarea tw-recipe-textarea" placeholder="* Record critical reminders here (e.g. altitude yeast adjustment, actual oven time, preferred flour brand)..."/>
+      </label>
+    </div>
+
+    <div class="tw-recipe-editor-grid-2 tw-recipe-editor-row-spaced">
+      <label class="tw-recipe-field-label">
+        <span>Source / Author Name</span>
+        <$edit-text field="source-name" tag="input" class="suite-input tw-recipe-input" placeholder="e.g. Serious Eats, J. Kenji López-Alt, Grandma's Cookbook"/>
+      </label>
+      <label class="tw-recipe-field-label">
+        <span>Source URL (Optional Link)</span>
+        <$edit-text field="source-url" tag="input" type="url" class="suite-input tw-recipe-input" placeholder="https://..."/>
+      </label>
+    </div>
+  </div>
+
+</div>
+</$let>

@@ -99,6 +99,10 @@ type: text/vnd.tiddlywiki
         </$list>
       </div>
       <div class="tw-recipe-action-group">
+        <$button class="suite-btn tw-recipe-btn" tooltip="Edit this recipe in the guided Recipe Editor">
+          <$action-sendmessage $message="tm-edit-tiddler" $param=<<currentTiddler>>/>
+          ✎ Edit Recipe
+        </$button>
         <$button class="suite-btn tw-recipe-btn">
           <$action-deletetiddler $filter="[all[tiddlers]prefix<misePrefix>]"/>
           Reset Checkboxes

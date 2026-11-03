@@ -32,6 +32,270 @@ type: text/vnd.tiddlywiki
 [<selQuery>is[blank]then<currentTiddler>] :else[<currentTiddler>search:title,cuisine,ingredients,text<selQuery>]
 \end
 
+\function f.lf()
+[charcode[10]]
+\end
+
+\function f.pipe()
+[charcode[124]]
+\end
+
+\function f.open-Link()
+[charcode[91],[91]]
+\end
+
+\function f.close-Link()
+[charcode[93],[93]]
+\end
+
+\function f.unwrap-Link(val)
+[<val>trim[]removeprefix<f.open-Link>removesuffix<f.close-Link>] :else[<val>trim[]]
+\end
+
+\function f.wrap-Link(val)
+[<val>trim[]removeprefix<f.open-Link>removesuffix<f.close-Link>] :else[<val>trim[]] :and[!is[blank]addprefix<f.open-Link>addsuffix<f.close-Link>] :else[[x]removesuffix[x]]
+\end
+
+\function f.build-Ing-Line(qty, unit, itemVal, note)
+=[<qty>trim[]] =[<f.pipe>] =[<unit>trim[]] =[<f.pipe>] =[f.wrap-Link<itemVal>] =[<f.pipe>] =[<note>trim[]] +[join[ ]]
+\end
+
+\function f.line-At(text, idx)
+[<text>splitregexp[\n]!is[blank]nth<idx>]
+\end
+
+\function f.line-Part(text, idx, partNum)
+[f.line-At<text>,<idx>search:title[|]split<f.pipe>nth<partNum>trim[]]
+\end
+
+\function f.line-Item-Clean(text, idx)
+[f.line-At<text>,<idx>search:title[|]split<f.pipe>nth[3]] :else[f.line-At<text>,<idx>!prefix[#]] :map[f.unwrap-Link<currentTiddler>]
+\end
+
+\function f.line-Section-Clean(text, idx)
+[f.line-At<text>,<idx>removeprefix[#]trim[]]
+\end
+
+\function f.line-Range(count)
+[<count>compare:number:gt[0]then[1]range<count>]
+\end
+
+\function f.line-Indices(text)
+[<text>splitregexp[\n]!is[blank]count[]] :map:flat[f.line-Range<currentTiddler>]
+\end
+
+\function f.replace-Line-Item(text, idx, targetIdx, newLine)
+[<idx>match<targetIdx>then<newLine>] :else[f.line-At<text>,<idx>]
+\end
+
+\function f.replace-Line(text, targetIdx, newLine)
+[f.line-Indices<text>] :map[f.replace-Line-Item<text>,<currentTiddler>,<targetIdx>,<newLine>] :and[join<f.lf>]
+\end
+
+\function f.delete-Line(text, targetIdx)
+[f.line-Indices<text>] :filter[!match<targetIdx>] :map[f.line-At<text>,<currentTiddler>] :and[join<f.lf>]
+\end
+
+\function f.swap-Line-Item(text, idx, idxA, idxB)
+[<idx>match<idxA>then<idxB>] :else[<idx>match<idxB>then<idxA>] :else[<idx>] :map[f.line-At<text>,<currentTiddler>]
+\end
+
+\function f.swap-Lines(text, idxA, idxB)
+[f.line-Indices<text>] :map[f.swap-Line-Item<text>,<currentTiddler>,<idxA>,<idxB>] :and[join<f.lf>]
+\end
+
+\function f.extract-Line-Item(line)
+[<line>search:title[|]split<f.pipe>nth[3]] :else[<line>]
+\end
+
+\function f.recipe-Ingredient-Names(ingText)
+[<ingText>splitregexp[\n]!is[blank]!prefix[#]] :map[f.extract-Line-Item<currentTiddler>] :map[f.unwrap-Link<currentTiddler>] :and[!is[blank]unique[]]
+\end
+
+\procedure ing-Bump-Rev()
+<$let
+  revState={{{ [[$:/temp/recipe/editor/rev/]addsuffix<currentTiddler>] }}}
+  nextRev={{{ [<revState>get[text]!is[blank]else[0]add[1]] }}}
+  rowPrefix={{{ [[$:/temp/recipe/editor/row/]addsuffix<currentTiddler>addsuffix[/]] }}}
+>
+  <$action-deletetiddler $filter="[all[tiddlers]prefix<rowPrefix>]"/>
+  <$action-setfield $tiddler=<<revState>> text=<<nextRev>>/>
+</$let>
+\end
+
+\procedure ing-Sync-Qty()
+<$let
+  pQty={{{ [f.line-Part{!!ingredients},<rowIdx>,[1]] }}}
+  pUnit={{{ [f.line-Part{!!ingredients},<rowIdx>,[2]] }}}
+  pItem={{{ [f.line-Item-Clean{!!ingredients},<rowIdx>] }}}
+  pNote={{{ [f.line-Part{!!ingredients},<rowIdx>,[4]] }}}
+>
+  <%if [<rowTemp>!has[init-qty]] %>
+    <$action-setfield $tiddler=<<rowTemp>> init-qty=<<pQty>>/>
+  <%endif%>
+  <$let
+    newLine={{{ [f.build-Ing-Line<actionValue>,<pUnit>,<pItem>,<pNote>] }}}
+    updatedIngs={{{ [f.replace-Line{!!ingredients},<rowIdx>,<newLine>] }}}
+  >
+    <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  </$let>
+</$let>
+\end
+
+\procedure ing-Sync-Unit()
+<$let
+  pQty={{{ [f.line-Part{!!ingredients},<rowIdx>,[1]] }}}
+  pUnit={{{ [f.line-Part{!!ingredients},<rowIdx>,[2]] }}}
+  pItem={{{ [f.line-Item-Clean{!!ingredients},<rowIdx>] }}}
+  pNote={{{ [f.line-Part{!!ingredients},<rowIdx>,[4]] }}}
+>
+  <%if [<rowTemp>!has[init-unit]] %>
+    <$action-setfield $tiddler=<<rowTemp>> init-unit=<<pUnit>>/>
+  <%endif%>
+  <$let
+    newLine={{{ [f.build-Ing-Line<pQty>,<actionValue>,<pItem>,<pNote>] }}}
+    updatedIngs={{{ [f.replace-Line{!!ingredients},<rowIdx>,<newLine>] }}}
+  >
+    <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  </$let>
+</$let>
+\end
+
+\procedure ing-Sync-Item()
+<$let
+  pQty={{{ [f.line-Part{!!ingredients},<rowIdx>,[1]] }}}
+  pUnit={{{ [f.line-Part{!!ingredients},<rowIdx>,[2]] }}}
+  pItem={{{ [f.line-Item-Clean{!!ingredients},<rowIdx>] }}}
+  pNote={{{ [f.line-Part{!!ingredients},<rowIdx>,[4]] }}}
+>
+  <%if [<rowTemp>!has[init-item]] %>
+    <$action-setfield $tiddler=<<rowTemp>> init-item=<<pItem>>/>
+  <%endif%>
+  <$let
+    newLine={{{ [f.build-Ing-Line<pQty>,<pUnit>,<actionValue>,<pNote>] }}}
+    updatedIngs={{{ [f.replace-Line{!!ingredients},<rowIdx>,<newLine>] }}}
+  >
+    <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  </$let>
+</$let>
+\end
+
+\procedure ing-Sync-Note()
+<$let
+  pQty={{{ [f.line-Part{!!ingredients},<rowIdx>,[1]] }}}
+  pUnit={{{ [f.line-Part{!!ingredients},<rowIdx>,[2]] }}}
+  pItem={{{ [f.line-Item-Clean{!!ingredients},<rowIdx>] }}}
+  pNote={{{ [f.line-Part{!!ingredients},<rowIdx>,[4]] }}}
+>
+  <%if [<rowTemp>!has[init-note]] %>
+    <$action-setfield $tiddler=<<rowTemp>> init-note=<<pNote>>/>
+  <%endif%>
+  <$let
+    newLine={{{ [f.build-Ing-Line<pQty>,<pUnit>,<pItem>,<actionValue>] }}}
+    updatedIngs={{{ [f.replace-Line{!!ingredients},<rowIdx>,<newLine>] }}}
+  >
+    <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  </$let>
+</$let>
+\end
+
+\procedure ing-Sync-Section()
+<$let
+  pSec={{{ [f.line-Section-Clean{!!ingredients},<rowIdx>] }}}
+>
+  <%if [<rowTemp>!has[init-sec]] %>
+    <$action-setfield $tiddler=<<rowTemp>> init-sec=<<pSec>>/>
+  <%endif%>
+  <$let
+    newLine={{{ [[# ]addsuffix<actionValue>] }}}
+    updatedIngs={{{ [f.replace-Line{!!ingredients},<rowIdx>,<newLine>] }}}
+  >
+    <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  </$let>
+</$let>
+\end
+
+\procedure ing-Move-Up()
+<$let
+  prevIdx={{{ [<rowIdx>subtract[1]] }}}
+  updatedIngs={{{ [f.swap-Lines{!!ingredients},<prevIdx>,<rowIdx>] }}}
+>
+  <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  <<ing-Bump-Rev>>
+</$let>
+\end
+
+\procedure ing-Move-Down()
+<$let
+  nextIdx={{{ [<rowIdx>add[1]] }}}
+  updatedIngs={{{ [f.swap-Lines{!!ingredients},<rowIdx>,<nextIdx>] }}}
+>
+  <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  <<ing-Bump-Rev>>
+</$let>
+\end
+
+\procedure ing-Delete-Row()
+<$let
+  updatedIngs={{{ [f.delete-Line{!!ingredients},<rowIdx>] }}}
+>
+  <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  <<ing-Bump-Rev>>
+</$let>
+\end
+
+\procedure ing-Add-Blank-Row()
+<$let
+  blankLine="1 |  | [[New Ingredient]] | "
+  existing={{{ [{!!ingredients}trim[]] }}}
+  updatedIngs={{{ [<existing>!is[blank]addsuffix<f.lf>addsuffix<blankLine>] :else[<blankLine>] }}}
+>
+  <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  <<ing-Bump-Rev>>
+</$let>
+\end
+
+\procedure ing-Add-Section-Row()
+<$let
+  secLine="# New Section"
+  existing={{{ [{!!ingredients}trim[]] }}}
+  updatedIngs={{{ [<existing>!is[blank]addsuffix<f.lf>addsuffix<secLine>] :else[<secLine>] }}}
+>
+  <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  <<ing-Bump-Rev>>
+</$let>
+\end
+
+\procedure ing-Quick-Add-Submit()
+<$let
+  quickTemp={{{ [[$:/temp/recipe/editor/quick-ing/]addsuffix<currentTiddler>] }}}
+  qQty={{{ [<quickTemp>get[qty]trim[]] }}}
+  qUnit={{{ [<quickTemp>get[unit]trim[]] }}}
+  qItem={{{ [<quickTemp>get[item]trim[]!is[blank]else[New Ingredient]] }}}
+  qNote={{{ [<quickTemp>get[note]trim[]] }}}
+  newLine={{{ [f.build-Ing-Line<qQty>,<qUnit>,<qItem>,<qNote>] }}}
+  existing={{{ [{!!ingredients}trim[]] }}}
+  updatedIngs={{{ [<existing>!is[blank]addsuffix<f.lf>addsuffix<newLine>] :else[<newLine>] }}}
+>
+  <$action-setfield $field="ingredients" $value=<<updatedIngs>>/>
+  <$action-deletetiddler $tiddler=<<quickTemp>>/>
+  <<ing-Bump-Rev>>
+</$let>
+\end
+
+\procedure equip-Add-Custom()
+<$let
+  equipTemp={{{ [[$:/temp/recipe/editor/equip/]addsuffix<currentTiddler>] }}}
+  rawEquip={{{ [<equipTemp>get[text]trim[]] }}}
+  cleanEquip={{{ [f.unwrap-Link<rawEquip>] }}}
+>
+  <%if [<cleanEquip>!is[blank]] %>
+    <$action-listops $field="equipment" $subfilter="+[<cleanEquip>]"/>
+    <$action-deletetiddler $tiddler=<<equipTemp>>/>
+  <%endif%>
+</$let>
+\end
+
 \procedure ing(qty:"", unit:"", item:"", note:"")
 <$let
   recipeTarget={{{ [<storyTiddler>!is[blank]else<currentTiddler>] }}}

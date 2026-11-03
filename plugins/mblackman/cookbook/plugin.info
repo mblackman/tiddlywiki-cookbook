@@ -6,7 +6,7 @@
   "core-version": ">=5.4.0",
   "source": "https://github.com/mblackman/tiddlywiki-cookbook",
   "plugin-type": "plugin",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "stability": "STABILITY_2_STABLE",
   "list": "readme config tree"
 }

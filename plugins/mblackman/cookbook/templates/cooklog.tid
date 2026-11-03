@@ -48,9 +48,13 @@ type: text/vnd.tiddlywiki
       <%endif%>
     </div>
 
-    <%if [<parentRecipe>!is[blank]] %>
-      <%if [{!!next-time}!is[blank]] %>
-        <div class="tw-recipe-toolbar suite-toolbar">
+    <div class="tw-recipe-toolbar suite-toolbar">
+      <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small" tooltip="Edit this cook session log">
+        <$action-sendmessage $message="tm-edit-tiddler" $param=<<currentTiddler>>/>
+        ✎ Edit Cook Log
+      </$button>
+      <%if [<parentRecipe>!is[blank]] %>
+        <%if [{!!next-time}!is[blank]] %>
           <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small" tooltip="Pin this 'Next Time' note to the parent recipe header">
             <$let
               noteToPin={{!!next-time}}
@@ -61,9 +65,9 @@ type: text/vnd.tiddlywiki
             </$let>
             📌 Pin "Next Time" to <<parentRecipe>>
           </$button>
-        </div>
+        <%endif%>
       <%endif%>
-    <%endif%>
+    </div>
   </div>
 
   <%if [{!!modifications}!is[blank]] [{!!verdict}!is[blank]] [{!!next-time}!is[blank]] +[count[]compare:number:gt[0]] %>

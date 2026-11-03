@@ -1,0 +1,135 @@
+title: $:/plugins/mblackman/cookbook/ui/EditTemplate/cooklog
+type: text/vnd.tiddlywiki
+
+\import [[$:/plugins/mblackman/cookbook/procedures]]
+
+<div class="tw-recipe-container tw-recipe-editor tw-cooklog-editor suite-container">
+
+  <!-- 1. SESSION OVERVIEW & METRICS -->
+  <div class="tw-recipe-editor-card suite-card suite-card--accent-primary">
+    <div class="tw-recipe-editor-section-header">
+      <h3 class="tw-recipe-section-title">1. Cook Session Details</h3>
+      <span class="tw-recipe-editor-hint">Link this session to a recipe and record the date, batch scale, and rating.</span>
+    </div>
+
+    <div class="tw-recipe-editor-grid-2">
+      <!-- Parent Recipe Selector -->
+      <div class="tw-recipe-editor-field-block">
+        <label class="tw-recipe-field-label">
+          <span>Recipe Cooked</span>
+          <$select field="recipe" default="" class="suite-select tw-recipe-select">
+            <option value="">— Select Recipe —</option>
+            <$list filter="[tag[Recipe]!has[draft.of]sort[title]] [{!!recipe}!is[blank]] +[unique[]]" variable="recTitle">
+              <option value=<<recTitle>>><<recTitle>></option>
+            </$list>
+          </$select>
+        </label>
+      </div>
+
+      <!-- Date Cooked + Today Button -->
+      <div class="tw-recipe-editor-field-block">
+        <span class="tw-recipe-field-label-text">Date Cooked</span>
+        <div class="tw-recipe-stepper-row">
+          <label class="tw-recipe-date-input-label">
+            <span class="tw-recipe-visually-hidden">Date Cooked</span>
+            <$edit-text field="cook-date" tag="input" type="date" class="suite-input tw-recipe-input tw-recipe-date-input suite-tabular-nums" placeholder="YYYY-MM-DD"/>
+          </label>
+          <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small">
+            <$action-setfield $field="cook-date" $value=<<now "YYYY-0MM-0DD">>/>
+            Today
+          </$button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tw-recipe-editor-grid-2 tw-recipe-editor-row-spaced">
+      <!-- Session Rating (1-5 Stars) -->
+      <div class="tw-recipe-editor-field-block">
+        <span class="tw-recipe-field-label-text">Session Rating</span>
+        <div class="tw-recipe-pill-selector" role="group" aria-label="Session Rating">
+          <$list filter="1 2 3 4 5" variable="stars">
+            <$button
+              class={{{ [{!!session-rating}match<stars>then[suite-chip tw-recipe-btn tw-recipe-star-btn tw-recipe-btn-active is-active]else[suite-chip tw-recipe-btn tw-recipe-star-btn]] }}}
+              aria-pressed={{{ [{!!session-rating}match<stars>then[true]else[false]] }}}
+              tooltip={{{ [[Rate ]addsuffix<stars>addsuffix[ out of 5 stars]] }}}
+            >
+              <$action-setfield $field="session-rating" $value=<<stars>>/>
+              <span class="suite-tabular-nums">★ <<stars>></span>
+            </$button>
+          </$list>
+          <%if [{!!session-rating}!is[blank]] %>
+            <$button class="suite-chip tw-recipe-btn tw-recipe-btn-ghost" tooltip="Clear rating">
+              <$action-setfield $field="session-rating" $value=""/>
+              Clear
+            </$button>
+          <%endif%>
+        </div>
+      </div>
+
+      <!-- Batch Scale Used -->
+      <div class="tw-recipe-editor-field-block">
+        <label class="tw-recipe-field-label">
+          <span>Batch Scale Used</span>
+          <$edit-text field="scale-used" tag="input" class="suite-input tw-recipe-input suite-tabular-nums" placeholder="e.g. 1x, 1.5x, 2x"/>
+        </label>
+        <div class="tw-recipe-preset-chips">
+          <$list filter="0.5x 1x 1.5x 2x 3x" variable="sc">
+            <$button
+              class={{{ [{!!scale-used}match<sc>then[suite-chip tw-recipe-chip-xs tw-recipe-btn-active is-active]else[suite-chip tw-recipe-chip-xs]] }}}
+            >
+              <$action-setfield $field="scale-used" $value=<<sc>>/>
+              <span class="suite-tabular-nums"><<sc>></span>
+            </$button>
+          </$list>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MODIFICATIONS, VERDICT & NEXT TIME -->
+  <div class="tw-recipe-editor-card suite-card">
+    <div class="tw-recipe-editor-section-header">
+      <h3 class="tw-recipe-section-title">2. Modifications, Verdict &amp; Next Time</h3>
+      <span class="tw-recipe-editor-hint">Capture what changed, how it turned out, and what to repeat or tweak next time.</span>
+    </div>
+
+    <div class="tw-recipe-editor-stack">
+      <label class="tw-recipe-field-label">
+        <span>Modifications &amp; Substitutions Made</span>
+        <$edit-text field="modifications" tag="textarea" autoHeight="no" rows="2" class="suite-textarea tw-recipe-textarea tw-recipe-textarea-compact" placeholder="e.g. Used 3.5g instant yeast with a 16-hour fridge ferment; subbed shallots for yellow onion..."/>
+      </label>
+
+      <label class="tw-recipe-field-label">
+        <span>Verdict / Outcome Summary</span>
+        <$edit-text field="verdict" tag="input" class="suite-input tw-recipe-input" placeholder="e.g. Crispiest frico edge yet; crumb was airy and light without gumminess"/>
+      </label>
+
+      <div class="tw-recipe-pinned-banner tw-recipe-pinned-editor-box">
+        <div class="tw-recipe-pinned-editor-header">
+          <strong>📌 For Next Time (Can be pinned to the Recipe Header)</strong>
+        </div>
+        <label class="tw-recipe-field-label">
+          <span class="tw-recipe-visually-hidden">For Next Time</span>
+          <$edit-text field="next-time" tag="input" class="suite-input tw-recipe-input" placeholder="e.g. Reduce salt by 1/4 tsp; keep the 3.5g yeast adjustment at high altitude"/>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. DETAILED TASTING & PROCESS NOTES -->
+  <div class="tw-recipe-editor-card suite-card">
+    <div class="tw-recipe-editor-section-header">
+      <h3 class="tw-recipe-section-title">3. Detailed Tasting &amp; Process Notes</h3>
+      <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small">
+        <$let nextText={{{ [{!!text}trim[]!is[blank]addsuffix<f.lf>addsuffix[* ]] :else[[* ]] }}}>
+          <$action-setfield $field="text" $value=<<nextText>>/>
+        </$let>
+        + Add Bullet Note (*)
+      </$button>
+    </div>
+    <div class="tw-recipe-directions-editor-wrap">
+      <$transclude tiddler="$:/core/ui/EditTemplate/body/default"/>
+    </div>
+  </div>
+
+</div>

@@ -47,12 +47,21 @@ describe("Cookbook Plugin ($:/plugins/mblackman/cookbook)", () => {
     });
   }
 
+  function renderTiddlerEditBody(title) {
+    return $tw.wiki.renderTiddler("text/html", "$:/core/ui/EditTemplate/body", {
+      variables: {
+        currentTiddler: title,
+        storyTiddler: title,
+      },
+    });
+  }
+
   test("loads plugin manifest with >=5.4.0 baseline and no external dependencies", () => {
     const pluginTiddler = $tw.wiki.getTiddler("$:/plugins/mblackman/cookbook");
     expect(pluginTiddler).toBeDefined();
     expect(pluginTiddler.fields.name).toBe("Cookbook");
     expect(pluginTiddler.fields["core-version"]).toBe(">=5.4.0");
-    expect(pluginTiddler.fields.version).toBe("0.1.1");
+    expect(pluginTiddler.fields.version).toBe(require("../package.json").version);
     expect(pluginTiddler.fields["plugin-type"]).toBe("plugin");
     expect(pluginTiddler.fields.dependents || []).toEqual([]);
     expect(pluginTiddler.fields.list).toEqual(["readme", "config", "tree"]);
@@ -70,10 +79,13 @@ describe("Cookbook Plugin ($:/plugins/mblackman/cookbook)", () => {
       "$:/plugins/mblackman/cookbook/styles/index",
       "$:/plugins/mblackman/cookbook/ui/ViewTemplate/recipe",
       "$:/plugins/mblackman/cookbook/ui/ViewTemplate/cooklog",
+      "$:/plugins/mblackman/cookbook/ui/EditTemplate/recipe",
+      "$:/plugins/mblackman/cookbook/ui/EditTemplate/cooklog",
       "$:/plugins/mblackman/cookbook/ui/sidebar-tab",
       "$:/plugins/mblackman/cookbook/ui/toolbar-button",
       "$:/plugins/mblackman/cookbook/ui/Buttons/new-recipe",
       "$:/config/ViewTemplateBodyFilters/recipe",
+      "$:/config/EditTemplateBodyFilters/recipe",
     ];
 
     for (const title of expectedShadows) {
@@ -325,5 +337,156 @@ describe("Cookbook Plugin ($:/plugins/mblackman/cookbook)", () => {
       "[[Chef's Knife]] [[Large Skillet]]"
     );
     expect(capturedEvent.paramObject.equipment).not.toContain("Filter error");
+  });
+
+  test("routes Recipe and CookLog drafts via EditTemplateBody cascade with guided sections", () => {
+    const recipeEditHtml = renderTiddlerEditBody(
+      "Crisis-Proof Cast Iron Pan Pizza"
+    );
+    expect(recipeEditHtml).toContain("tw-recipe-editor");
+    expect(recipeEditHtml).toContain("1. Classification, Status &amp; Rating");
+    expect(recipeEditHtml).toContain("2. Timing, Oven &amp; Batch Yield");
+    expect(recipeEditHtml).toContain("3. Equipment &amp; Cookware");
+    expect(recipeEditHtml).toContain("4. Ingredients &amp; Mise en Place List");
+    expect(recipeEditHtml).toContain("5. Step-by-Step Directions &amp; Notes");
+    expect(recipeEditHtml).toContain(
+      "6. Pinned Kitchen Tweaks &amp; Source Attribution"
+    );
+    expect(recipeEditHtml).toContain("tw-recipe-ing-editor-row");
+    expect(recipeEditHtml).toContain("tw-recipe-ing-editor-section");
+    expect(recipeEditHtml).toContain("tw-recipe-ing-cell-label");
+    expect(recipeEditHtml).toContain("tw-recipe-ing-mobile-label");
+    expect(recipeEditHtml).toContain("10-Inch Cast Iron Skillet");
+    expect(recipeEditHtml).not.toContain("Filter error");
+
+    const cookLogEditHtml = renderTiddlerEditBody(
+      "CookLog: Crisis-Proof Cast Iron Pan Pizza (2026-10-25)"
+    );
+    expect(cookLogEditHtml).toContain("tw-cooklog-editor");
+    expect(cookLogEditHtml).toContain("1. Cook Session Details");
+    expect(cookLogEditHtml).toContain("2. Modifications, Verdict &amp; Next Time");
+    expect(cookLogEditHtml).toContain("3. Detailed Tasting &amp; Process Notes");
+    expect(cookLogEditHtml).toContain("tw-recipe-date-input-label");
+    expect(cookLogEditHtml).not.toContain("Filter error");
+  });
+
+  test("evaluates ingredient builder helper functions (wrap/unwrap links, replace, swap, delete, extract names)", () => {
+    expect(
+      renderPlainWithGlobals(
+        "<$let b='[[Bread Flour]]' p='Garlic'><$text text={{{ [f.unwrap-Link<b>] }}}/>|<$text text={{{ [f.wrap-Link<p>] }}}/></$let>"
+      )
+    ).toBe("Bread Flour|[[Garlic]]");
+
+    expect(
+      renderPlainWithGlobals(
+        "<$let q='2' u='tbsp' i='Olive Oil' n='extra virgin'><$text text={{{ [f.build-Ing-Line<q>,<u>,<i>,<n>] }}}/></$let>"
+      )
+    ).toBe("2 | tbsp | [[Olive Oil]] | extra virgin");
+
+    const sampleLines = "# Dough\n400 | g | [[Bread Flour]] | sifted\n10 | g | [[Sea Salt]] |";
+    expect(
+      renderPlainWithGlobals(
+        "<$text text={{{ [f.replace-Line<sample>,[2],<newLine>] }}}/>",
+        { sample: sampleLines, newLine: "500 | g | [[Bread Flour]] | sifted" }
+      )
+    ).toBe("# Dough\n500 | g | [[Bread Flour]] | sifted\n10 | g | [[Sea Salt]] |");
+
+    expect(
+      renderPlainWithGlobals(
+        "<$text text={{{ [f.swap-Lines<sample>,[2],[3]] }}}/>",
+        { sample: sampleLines }
+      )
+    ).toBe("# Dough\n10 | g | [[Sea Salt]] |\n400 | g | [[Bread Flour]] | sifted");
+
+    expect(
+      renderPlainWithGlobals(
+        "<$text text={{{ [f.delete-Line<sample>,[1]] }}}/>",
+        { sample: sampleLines }
+      )
+    ).toBe("400 | g | [[Bread Flour]] | sifted\n10 | g | [[Sea Salt]] |");
+
+    expect(
+      renderPlainWithGlobals(
+        "<$text text={{{ [f.recipe-Ingredient-Names<sample>] +[join[, ]] }}}/>",
+        { sample: sampleLines }
+      )
+    ).toBe("Bread Flour, Sea Salt");
+  });
+
+  test("preserves ingredient row input DOM nodes across keystrokes and toggles bulk text mode", () => {
+    const draftTitle = "Draft of 'Test Recipe Editor'";
+    const modeState = `$:/temp/recipe/editor/ing-mode/${draftTitle}`;
+
+    try {
+      $tw.wiki.addTiddler({
+        title: draftTitle,
+        tags: "Recipe",
+        ingredients: "400 | g | [[Bread Flour]] | sifted\n280 | g | [[Warm Water]] |",
+      });
+
+      const parser = $tw.wiki.parseTiddler(
+        "$:/plugins/mblackman/cookbook/ui/EditTemplate/recipe"
+      );
+      const widgetNode = $tw.wiki.makeWidget(parser, {
+        document: $tw.fakeDocument,
+        variables: { currentTiddler: draftTitle, storyTiddler: draftTitle },
+      });
+      const container = $tw.fakeDocument.createElement("div");
+      widgetNode.render(container, null);
+
+      function findQtyInputs(node, acc = []) {
+        if (
+          node.parseTreeNode &&
+          node.parseTreeNode.type === "edit-text" &&
+          node.editField === "qty" &&
+          node.editTitle &&
+          node.editTitle.startsWith("$:/temp/recipe/editor/row/")
+        ) {
+          acc.push(node);
+        }
+        (node.children || []).forEach((c) => findQtyInputs(c, acc));
+        return acc;
+      }
+
+      const qtyWidgets = findQtyInputs(widgetNode);
+      expect(qtyWidgets.length).toBe(2);
+      const firstQtyDom = qtyWidgets[0].engine.domNode;
+      expect(firstQtyDom.value).toBe("400");
+
+      // Simulate typing "45" then "450" into first ingredient row Qty
+      firstQtyDom.value = "45";
+      qtyWidgets[0].engine.handleInputEvent({});
+      const rowTempTitle = qtyWidgets[0].editTitle;
+      widgetNode.refresh({
+        [draftTitle]: { modified: true },
+        [rowTempTitle]: { modified: true },
+      });
+
+      expect(findQtyInputs(widgetNode)[0].engine.domNode).toBe(firstQtyDom);
+      expect($tw.wiki.getTiddler(draftTitle).fields.ingredients).toBe(
+        "45 | g | [[Bread Flour]] | sifted\n280 | g | [[Warm Water]] |"
+      );
+
+      firstQtyDom.value = "450";
+      qtyWidgets[0].engine.handleInputEvent({});
+      widgetNode.refresh({
+        [draftTitle]: { modified: true },
+        [rowTempTitle]: { modified: true },
+      });
+
+      expect(findQtyInputs(widgetNode)[0].engine.domNode).toBe(firstQtyDom);
+      expect($tw.wiki.getTiddler(draftTitle).fields.ingredients).toBe(
+        "450 | g | [[Bread Flour]] | sifted\n280 | g | [[Warm Water]] |"
+      );
+
+      // Toggle Bulk Text mode
+      $tw.wiki.addTiddler({ title: modeState, text: "bulk" });
+      const bulkHtml = renderTiddlerEditBody(draftTitle);
+      expect(bulkHtml).toContain("tw-recipe-ing-bulk-box");
+      expect(bulkHtml).toContain("Pipe Syntax Format:");
+    } finally {
+      $tw.wiki.deleteTiddler(draftTitle);
+      $tw.wiki.deleteTiddler(modeState);
+    }
   });
 });

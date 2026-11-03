@@ -9,7 +9,7 @@ type: text/vnd.tiddlywiki
 
 !! Key Features
 
-* ''View Template Body Cascade (`Recipe` & `CookLog`)'': Automatically renders any tiddler tagged `Recipe` in a two-column cooking workspace and any tiddler tagged `CookLog` as a structured session report.
+* ''View & Edit Template Body Cascades (`Recipe` & `CookLog`)'': Automatically renders any tiddler tagged `Recipe` in a two-column cooking workspace, any `CookLog` as a structured session report, and provides a guided 6-section Recipe Editor (status/rating pills, timing & yield steppers, equipment chip picker, visual ingredient row builder with bulk pipe-syntax toggle, and direction step/link helpers) plus a guided CookLog Editor when editing.
 * ''Live Batch Scaling (`½×` to `3×`)'': Scales `base-servings` and pipe-delimited or inline `<<ing>>` ingredient quantities on the fly (including decimals and fractions like `1/2` or `1 1/2`).
 * ''Ephemeral Mise en Place Checklists'': Check off prepped ingredients in `$:/temp/recipe/mise/...` without dirtying the recipe's modification timestamp.
 * ''Countertop Cook Mode'': Enlarges typography and promotes all interactive controls to `44px` touch targets (`data-suite-density="touch"`).

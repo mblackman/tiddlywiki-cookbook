@@ -1,0 +1,6 @@
+title: $:/config/EditTemplateBodyFilters/recipe
+tags: $:/tags/EditTemplateBodyFilter
+list-before: $:/config/EditTemplateBodyFilters/default
+type: text/vnd.tiddlywiki
+
+[tag[Recipe]then[$:/plugins/mblackman/cookbook/ui/EditTemplate/recipe]] :else[tag[CookLog]then[$:/plugins/mblackman/cookbook/ui/EditTemplate/cooklog]]
