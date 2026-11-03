@@ -1,0 +1,12 @@
+{
+  "title": "$:/plugins/mblackman/cookbook",
+  "name": "Cookbook",
+  "author": "mblackman",
+  "description": "Structured recipe manager, live ingredient scaling, mise en place checklist, and post-cook journal for TiddlyWiki 5.4+",
+  "core-version": ">=5.4.0",
+  "source": "https://github.com/mblackman/tiddlywiki-cookbook",
+  "plugin-type": "plugin",
+  "version": "0.1.0",
+  "stability": "STABILITY_2_STABLE",
+  "list": "readme config tree"
+}

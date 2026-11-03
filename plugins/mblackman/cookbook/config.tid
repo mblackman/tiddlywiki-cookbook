@@ -1,0 +1,78 @@
+title: $:/plugins/mblackman/cookbook/config
+tags: $:/tags/ControlPanel/SettingsTab
+caption: Cookbook
+type: text/vnd.tiddlywiki
+
+\define config-base() $:/config/cookbook/
+
+<div class="tw-recipe-container suite-container">
+
+Manage default values and presets for new ''Recipe'' and ''CookLog'' tiddlers created by Cookbook.
+
+---
+
+!! New Recipe Defaults
+
+<div class="tw-recipe-config-grid">
+  <label class="tw-recipe-field-label">
+    <span>Default Dish Type</span>
+    <$edit-text tiddler="$:/config/cookbook/default-dish-type" field="text" default="Main" tag="input" class="suite-input tw-recipe-input" placeholder="Main, Baking, Sauce..."/>
+  </label>
+
+  <label class="tw-recipe-field-label">
+    <span>Default Status</span>
+    <$select tiddler="$:/config/cookbook/default-status" field="text" default="To Try" class="suite-select tw-recipe-select">
+      <option value="To Try">To Try</option>
+      <option value="Tested">Tested</option>
+      <option value="Staple">Staple</option>
+    </$select>
+  </label>
+
+  <label class="tw-recipe-field-label">
+    <span>Default Base Servings</span>
+    <$edit-text tiddler="$:/config/cookbook/default-servings" field="text" default="4" tag="input" class="suite-input tw-recipe-input suite-tabular-nums" placeholder="4"/>
+  </label>
+
+  <label class="tw-recipe-field-label">
+    <span>Default Yield Unit</span>
+    <$edit-text tiddler="$:/config/cookbook/default-yield-unit" field="text" default="servings" tag="input" class="suite-input tw-recipe-input" placeholder="servings, loaves..."/>
+  </label>
+
+  <label class="tw-recipe-field-label">
+    <span>Default Prep Time</span>
+    <$edit-text tiddler="$:/config/cookbook/default-prep-time" field="text" default="15 mins" tag="input" class="suite-input tw-recipe-input" placeholder="15 mins"/>
+  </label>
+
+  <label class="tw-recipe-field-label">
+    <span>Default Cook Time</span>
+    <$edit-text tiddler="$:/config/cookbook/default-cook-time" field="text" default="30 mins" tag="input" class="suite-input tw-recipe-input" placeholder="30 mins"/>
+  </label>
+</div>
+
+<div class="tw-recipe-quicklog-row" style="margin-block-start: 0.75rem;">
+  <label class="tw-recipe-field-label" style="flex: 1 1 100%;">
+    <span>Default Equipment (TiddlyWiki title list)</span>
+    <$edit-text tiddler="$:/config/cookbook/default-equipment" field="text" default="[[Chef's Knife]] [[Large Skillet]]" tag="input" class="suite-input tw-recipe-input-wide"/>
+  </label>
+</div>
+
+---
+
+!! Workspace & Scaling Preferences
+
+<div class="tw-recipe-config-grid">
+  <label class="tw-recipe-field-label">
+    <span>Scale Multipliers (space-separated)</span>
+    <$edit-text tiddler="$:/config/cookbook/scale-presets" field="text" default="0.5 1 1.5 2 3" tag="input" class="suite-input tw-recipe-input suite-tabular-nums"/>
+  </label>
+
+  <label class="tw-recipe-field-label">
+    <span>Default Cook Mode</span>
+    <$select tiddler="$:/config/cookbook/default-cookmode" field="text" default="no" class="suite-select tw-recipe-select">
+      <option value="no">Standard Density (Default)</option>
+      <option value="yes">Cook Mode (Large Text & Countertop 44px Targets)</option>
+    </$select>
+  </label>
+</div>
+
+</div>

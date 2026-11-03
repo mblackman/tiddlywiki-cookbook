@@ -1,0 +1,35 @@
+title: $:/plugins/mblackman/cookbook/readme
+type: text/vnd.tiddlywiki
+
+! Cookbook — Recipe Manager & Post-Cook Journal
+
+''Cookbook'' (`$:/plugins/mblackman/cookbook`) provides a native TiddlyWiki 5.4+ recipe workspace with live batch scaling, interactive *mise en place* checklists, countertop Cook Mode, and linked post-cook iteration logs.
+
+---
+
+!! Key Features
+
+* ''View Template Body Cascade (`Recipe` & `CookLog`)'': Automatically renders any tiddler tagged `Recipe` in a two-column cooking workspace and any tiddler tagged `CookLog` as a structured session report.
+* ''Live Batch Scaling (`½×` to `3×`)'': Scales `base-servings` and pipe-delimited or inline `<<ing>>` ingredient quantities on the fly (including decimals and fractions like `1/2` or `1 1/2`).
+* ''Ephemeral Mise en Place Checklists'': Check off prepped ingredients in `$:/temp/recipe/mise/...` without dirtying the recipe's modification timestamp.
+* ''Countertop Cook Mode'': Enlarges typography and promotes all interactive controls to `44px` touch targets (`data-suite-density="touch"`).
+* ''Pinned Kitchen Tweaks & Iteration History'': Record post-cook logs inline and promote `"Next Time"` lessons directly to the recipe's top callout banner with one click.
+
+---
+
+!! Ingredient Syntax
+
+Populate the `ingredients` field using `qty | unit | item | optional note` per line, with `# Section Name` for sub-headings:
+
+```text
+# Dough (70% Hydration)
+400 | g | [[Bread Flour]] | King Arthur preferred
+280 | g | [[Warm Water]] | 95°F / 35°C
+1/2 | tsp | [[Instant Yeast]] |
+```
+
+Or invoke the global `<<ing>>` procedure anywhere in WikiText:
+
+```tid
+<<ing qty="200" unit="g" item="[[Bread Flour]]" note="sifted">>
+```

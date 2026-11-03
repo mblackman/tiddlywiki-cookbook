@@ -1,0 +1,16 @@
+title: $:/plugins/mblackman/cookbook/ui/toolbar-button
+tags: $:/tags/PageControls
+caption: {{$:/plugins/mblackman/cookbook/images/cookbook-icon}} Cookbook
+description: Open the Cookbook Dashboard
+type: text/vnd.tiddlywiki
+
+\whitespace trim
+<$button class=<<tv-config-toolbar-class>> tooltip="Open the Cookbook Dashboard" aria-label="Cookbook Dashboard">
+  <$list filter="[<tv-config-toolbar-icons>match[yes]]">
+    {{$:/plugins/mblackman/cookbook/images/cookbook-icon}}
+  </$list>
+  <$list filter="[<tv-config-toolbar-text>match[yes]]">
+    <span class="tc-btn-text"><$text text="Cookbook"/></span>
+  </$list>
+  <$action-navigate $to="$:/plugins/mblackman/cookbook/dashboard"/>
+</$button>

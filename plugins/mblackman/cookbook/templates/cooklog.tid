@@ -1,0 +1,102 @@
+title: $:/plugins/mblackman/cookbook/ui/ViewTemplate/cooklog
+type: text/vnd.tiddlywiki
+
+\import [[$:/plugins/mblackman/cookbook/procedures]]
+
+<$let
+  parentRecipe={{!!recipe}}
+>
+<div class="tw-recipe-container tw-cooklog-view suite-container">
+  <div class="tw-recipe-header-card suite-card suite-card--accent-primary">
+    <div class="tw-recipe-badges suite-tag-list">
+      <span class="suite-badge suite-badge--accent">Cook Log</span>
+      <%if [{!!cook-date}!is[blank]] %>
+        <span class="suite-badge suite-tabular-nums">📅 {{!!cook-date}}</span>
+      <%endif%>
+      <%if [{!!session-rating}!is[blank]] %>
+        <span class="suite-badge suite-badge--warning suite-tabular-nums">★ {{!!session-rating}}/5</span>
+      <%endif%>
+      <%if [{!!scale-used}!is[blank]] %>
+        <span class="suite-badge suite-badge--info suite-tabular-nums">Scale: {{!!scale-used}}</span>
+      <%endif%>
+    </div>
+
+    <div class="tw-recipe-metrics-grid">
+      <%if [<parentRecipe>!is[blank]] %>
+        <div class="tw-recipe-metric">
+          <span class="tw-recipe-metric-label">Recipe</span>
+          <span class="tw-recipe-metric-val"><$link to=<<parentRecipe>>><<parentRecipe>></$link></span>
+        </div>
+      <%endif%>
+      <%if [{!!cook-date}!is[blank]] %>
+        <div class="tw-recipe-metric">
+          <span class="tw-recipe-metric-label">Date Cooked</span>
+          <span class="tw-recipe-metric-val suite-tabular-nums">{{!!cook-date}}</span>
+        </div>
+      <%endif%>
+      <%if [{!!scale-used}!is[blank]] %>
+        <div class="tw-recipe-metric">
+          <span class="tw-recipe-metric-label">Batch Scale</span>
+          <span class="tw-recipe-metric-val suite-tabular-nums">{{!!scale-used}}</span>
+        </div>
+      <%endif%>
+      <%if [{!!session-rating}!is[blank]] %>
+        <div class="tw-recipe-metric">
+          <span class="tw-recipe-metric-label">Session Rating</span>
+          <span class="tw-recipe-metric-val suite-tabular-nums">★ {{!!session-rating}}/5</span>
+        </div>
+      <%endif%>
+    </div>
+
+    <%if [<parentRecipe>!is[blank]] %>
+      <%if [{!!next-time}!is[blank]] %>
+        <div class="tw-recipe-toolbar suite-toolbar">
+          <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small" tooltip="Pin this 'Next Time' note to the parent recipe header">
+            <$let
+              noteToPin={{!!next-time}}
+              existingPin={{{ [<parentRecipe>get[pinned-tweaks]] }}}
+              newPin={{{ [<existingPin>!is[blank]addsuffix[\n* ]addsuffix<noteToPin>] :else[[* ]addsuffix<noteToPin>] }}}
+            >
+              <$action-setfield $tiddler=<<parentRecipe>> $field="pinned-tweaks" $value=<<newPin>>/>
+            </$let>
+            📌 Pin "Next Time" to <<parentRecipe>>
+          </$button>
+        </div>
+      <%endif%>
+    <%endif%>
+  </div>
+
+  <%if [{!!modifications}!is[blank]] [{!!verdict}!is[blank]] [{!!next-time}!is[blank]] +[count[]compare:number:gt[0]] %>
+    <div class="tw-cooklog-summary-grid">
+      <%if [{!!modifications}!is[blank]] %>
+        <div class="suite-panel-subtle tw-cooklog-summary-box">
+          <div class="tw-recipe-metric-label">Modifications & Substitutions</div>
+          <div class="tw-cooklog-summary-text">{{!!modifications}}</div>
+        </div>
+      <%endif%>
+      <%if [{!!verdict}!is[blank]] %>
+        <div class="suite-panel-subtle tw-cooklog-summary-box">
+          <div class="tw-recipe-metric-label">Verdict</div>
+          <div class="tw-cooklog-summary-text">{{!!verdict}}</div>
+        </div>
+      <%endif%>
+      <%if [{!!next-time}!is[blank]] %>
+        <div class="tw-recipe-pinned-banner tw-cooklog-nexttime-banner">
+          <div class="tw-recipe-pinned-header">
+            <strong>📌 For Next Time</strong>
+          </div>
+          <div class="tw-recipe-pinned-body">{{!!next-time}}</div>
+        </div>
+      <%endif%>
+    </div>
+  <%endif%>
+
+  <%if [{!!text}!is[blank]] %>
+    <div class="tw-recipe-directions-col suite-card">
+      <div class="tw-recipe-directions-body">
+        <$transclude $field="text" $mode="block"/>
+      </div>
+    </div>
+  <%endif%>
+</div>
+</$let>

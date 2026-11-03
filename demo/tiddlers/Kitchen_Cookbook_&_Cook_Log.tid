@@ -1,0 +1,5 @@
+title: Kitchen Cookbook & Cook Log
+tags: TableOfContents
+type: text/vnd.tiddlywiki
+
+{{$:/plugins/mblackman/cookbook/dashboard}}

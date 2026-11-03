@@ -1,0 +1,130 @@
+title: $:/plugins/mblackman/cookbook/procedures
+tags: $:/tags/Global
+type: text/vnd.tiddlywiki
+
+\function f.scale-Factor(baseServings, targetServings)
+[<targetServings>!is[blank]divide<baseServings>] :else[[1]]
+\end
+
+\function f.eval-Frac(frac)
+[<frac>split[/]first[]trim[]] [<frac>split[/]last[]trim[]power[-1]] +[product[]]
+\end
+
+\function f.eval-Token(tok)
+[<tok>search:title[/]]
+:then[f.eval-Frac<tok>]
+:else[<tok>trim[]]
+\end
+
+\function f.scale-Qty(qty, factor)
+[<qty>trim[]split[ ]!is[blank]] :map[f.eval-Token<currentTiddler>] +[sum[]multiply<factor>multiply[100]round[]divide[100]]
+\end
+
+\procedure ing(qty:"", unit:"", item:"", note:"")
+<$let
+  recipeTarget={{{ [<storyTiddler>!is[blank]else<currentTiddler>] }}}
+  scaleState={{{ [[$:/temp/recipe/scale/]addsuffix<recipeTarget>] }}}
+  factor={{{ [<scaleState>get[text]!is[blank]else[1]] }}}
+  miseState={{{ [[$:/temp/recipe/mise/]addsuffix<recipeTarget>addsuffix[/]addsuffix<item>addsuffix<qty>] }}}
+  scaledQty={{{ [<qty>!is[blank]then[1]f.scale-Qty<qty>,<factor>] }}}
+>
+<$checkbox class="tw-recipe-ing-row" tiddler=<<miseState>> field="status" checked="done" unchecked="" default="">
+  <span class={{{ [<miseState>get[status]match[done]then[tw-recipe-ing-done]else[tw-recipe-ing-active]] }}}>
+    <%if [<scaledQty>!is[blank]] %>
+      <strong class="tw-recipe-ing-qty suite-tabular-nums"><<scaledQty>></strong>
+    <%endif%>
+    <%if [<unit>!is[blank]] %>
+      <span class="tw-recipe-ing-unit"> <<unit>></span>
+    <%endif%>
+    <span class="tw-recipe-ing-item"> <<item>></span>
+    <%if [<note>!is[blank]] %>
+      <em class="tw-recipe-ing-note"> (<<note>>)</em>
+    <%endif%>
+  </span>
+</$checkbox>
+</$let>
+\end
+
+\procedure recipe-Scale-Button(mult, label)
+<$let
+  scaleState={{{ [[$:/temp/recipe/scale/]addsuffix<currentTiddler>] }}}
+  currentMult={{{ [<scaleState>get[text]!is[blank]else[1]] }}}
+  resolvedLabel={{{ [<label>!is[blank]] :else[<mult>addsuffix[×]] }}}
+>
+  <$button
+    class={{{ [<currentMult>match<mult>then[suite-chip tw-recipe-btn tw-recipe-btn-active is-active]else[suite-chip tw-recipe-btn]] }}}
+    aria-pressed={{{ [<currentMult>match<mult>then[true]else[false]] }}}
+  >
+    <$action-setfield $tiddler=<<scaleState>> text=<<mult>>/>
+    <span class="suite-tabular-nums"><<resolvedLabel>></span>
+  </$button>
+</$let>
+\end
+
+\procedure action-Create-Cook-Log()
+<$let
+  today=<<now "YYYY-0MM-0DD">>
+  logTitle={{{ [[CookLog: ]addsuffix<currentTiddler>addsuffix[ (]addsuffix<today>addsuffix[)]] }}}
+  scaleState={{{ [[$:/temp/recipe/scale/]addsuffix<currentTiddler>] }}}
+  activeScale={{{ [<scaleState>get[text]!is[blank]else[1]] }}}
+>
+  <$action-sendmessage
+    $message="tm-new-tiddler"
+    title=<<logTitle>>
+    tags="CookLog"
+    recipe=<<currentTiddler>>
+    cook-date=<<today>>
+    scale-used={{{ [<activeScale>addsuffix[x]] }}}
+    session-rating="5"
+    modifications=""
+    verdict=""
+    next-time=""
+    text="!!! Tasting & Process Notes
+
+* "
+  />
+</$let>
+\end
+
+\procedure action-Create-Recipe()
+<$let
+  defDishType={{{ [[$:/config/cookbook/default-dish-type]get[text]!is[blank]else[Main]] }}}
+  defStatus={{{ [[$:/config/cookbook/default-status]get[text]!is[blank]else[To Try]] }}}
+  defServings={{{ [[$:/config/cookbook/default-servings]get[text]!is[blank]else[4]] }}}
+  defYieldUnit={{{ [[$:/config/cookbook/default-yield-unit]get[text]!is[blank]else[servings]] }}}
+  defPrepTime={{{ [[$:/config/cookbook/default-prep-time]get[text]!is[blank]else[15 mins]] }}}
+  defCookTime={{{ [[$:/config/cookbook/default-cook-time]get[text]!is[blank]else[30 mins]] }}}
+  defEquipment={{{ [[$:/config/cookbook/default-equipment]get[text]!is[blank]else[[[Chef's Knife]] [[Large Skillet]]]] }}}
+>
+  <$action-sendmessage
+    $message="tm-new-tiddler"
+    title="New Recipe"
+    tags="Recipe"
+    dish-type=<<defDishType>>
+    cuisine=""
+    status=<<defStatus>>
+    rating=""
+    prep-time=<<defPrepTime>>
+    cook-time=<<defCookTime>>
+    oven-temp=""
+    base-servings=<<defServings>>
+    yield-unit=<<defYieldUnit>>
+    equipment=<<defEquipment>>
+    source-name=""
+    source-url=""
+    pinned-tweaks=""
+    ingredients="# Main Components
+2 | tbsp | [[Olive Oil]] |
+1 | medium | [[Yellow Onion]] | finely diced
+3 | cloves | [[Garlic]] | minced"
+    text="!!! Preparation & Cooking Steps
+
+# Heat the [[Olive Oil]] in a [[Large Skillet]] over medium heat.
+# Add the [[Yellow Onion]] and sweat for 5–6 minutes until translucent.
+
+!!! Plating & Serving Suggestions
+
+* "
+  />
+</$let>
+\end

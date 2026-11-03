@@ -1,0 +1,16 @@
+title: $:/plugins/mblackman/cookbook/ui/Buttons/new-recipe
+tags: $:/tags/PageControls
+caption: {{$:/core/images/new-button}} New Recipe
+description: Create a new structured Recipe tiddler
+type: text/vnd.tiddlywiki
+
+\import [[$:/plugins/mblackman/cookbook/procedures]]
+\whitespace trim
+<$button tooltip="Create a new Recipe" aria-label="New Recipe" class=<<tv-config-toolbar-class>> actions=<<action-Create-Recipe>>>
+  <%if [<tv-config-toolbar-icons>match[yes]] %>
+    {{$:/core/images/new-button}}
+  <%endif%>
+  <%if [<tv-config-toolbar-text>match[yes]] %>
+    <span class="tc-btn-text">New Recipe</span>
+  <%endif%>
+</$button>

@@ -1,0 +1,51 @@
+[
+  {
+    "title": "Crisis-Proof Cast Iron Pan Pizza",
+    "tags": "Recipe Baking Dinner",
+    "dish-type": "Baking",
+    "cuisine": "Italian-American",
+    "status": "Staple",
+    "rating": "5",
+    "prep-time": "20 mins (+2h rise)",
+    "cook-time": "14 mins",
+    "oven-temp": "500°F / 260°C",
+    "base-servings": "2",
+    "yield-unit": "10-inch pizzas",
+    "equipment": "[[10-Inch Cast Iron Skillet]] [[Digital Kitchen Scale]]",
+    "source-name": "Serious Eats Foolproof Pan Pizza",
+    "source-url": "https://www.seriouseats.com/foolproof-pan-pizza-recipe",
+    "pinned-tweaks": "* At 5,500 ft elevation in Centennial, reduce instant yeast to ''3.5 g'' for an overnight cold ferment so the dough doesn't over-proof.\n* Finish on the stovetop burner over medium heat for 90 seconds if you want extra-charred leopard spotting on the bottom crust.",
+    "ingredients": "# Dough (70% Hydration)\n400 | g | [[Bread Flour]] | King Arthur preferred\n280 | g | [[Warm Water]] | 95°F / 35°C\n10 | g | [[Fine Sea Salt]] |\n4 | g | [[Instant Yeast]] |\n8 | g | [[Extra-Virgin Olive Oil]] | for dough\n\n# Assembly & Pan Coating\n2 | tbsp | [[Extra-Virgin Olive Oil]] | per skillet\n1 | cup | [[Crushed San Marzano Tomatoes]] | uncooked, lightly salted\n225 | g | [[Low-Moisture Mozzarella]] | cubed, not pre-shredded\n1/2 | tsp | [[Dried Oregano]] |",
+    "type": "text/vnd.tiddlywiki",
+    "text": "!!! Directions\n\n# ''Mix the Dough:'' Whisk [[Bread Flour]], [[Fine Sea Salt]], and [[Instant Yeast]] in a bowl. Add [[Warm Water]] and [[Extra-Virgin Olive Oil]], stirring until no dry flour remains (about 60 seconds).\n# ''Proof & Divide:'' Cover tightly and rest at room temperature for 2 hours (or refrigerate 12–24 hours). Divide evenly into two oiled [[10-Inch Cast Iron Skillet]] pans, turning to coat.\n# ''Pan Proof:'' Press dough toward the edges, cover, and let relax for 45–60 minutes until it fills the pan cleanly.\n# ''Top to the Edge:'' Preheat oven to 500°F. Spread [[Crushed San Marzano Tomatoes]] and [[Low-Moisture Mozzarella]] all the way against the bare cast iron walls to form a caramelized //frico// cheese crown.\n# ''Bake & Finish:'' Bake on the middle rack for 12–15 minutes until bubbling and golden. Check the underside with a spatula; optionally crisp over a stovetop burner for 60–90 seconds.\n"
+  },
+  {
+    "title": "Crushed San Marzano Tomatoes",
+    "tags": "Recipe Sauce",
+    "dish-type": "Sauce",
+    "cuisine": "Italian",
+    "status": "Staple",
+    "rating": "5",
+    "prep-time": "5 mins",
+    "cook-time": "0 mins",
+    "base-servings": "2",
+    "yield-unit": "cups",
+    "equipment": "[[Immersion Blender]]",
+    "ingredients": "# Sauce Base\n1 | 28-oz can | [[Whole Peeled San Marzano Tomatoes]] | drained slightly\n1 | tbsp | [[Extra-Virgin Olive Oil]] |\n1/2 | tsp | [[Fine Sea Salt]] |\n1 | clove | [[Garlic]] | finely grated",
+    "type": "text/vnd.tiddlywiki",
+    "text": "!!! Directions\n\n# Pulse [[Whole Peeled San Marzano Tomatoes]] briefly with an [[Immersion Blender]] or crush by hand so the sauce stays slightly chunky.\n# Stir in [[Extra-Virgin Olive Oil]], [[Fine Sea Salt]], and grated [[Garlic]]. Do not pre-cook before spreading onto pizza dough so the tomatoes stay bright and fresh in the oven.\n"
+  },
+  {
+    "title": "CookLog: Crisis-Proof Cast Iron Pan Pizza (2026-10-25)",
+    "tags": "CookLog",
+    "recipe": "Crisis-Proof Cast Iron Pan Pizza",
+    "cook-date": "2026-10-25",
+    "scale-used": "1x",
+    "session-rating": "5",
+    "modifications": "Used 3.5g instant yeast with a 16-hour fridge ferment; added sliced pickled jalapeños and hot honey drizzle after baking.",
+    "verdict": "Crispiest frico edge yet; crumb was airy and light without gumminess.",
+    "next-time": "Keep the 3.5g yeast adjustment for overnight fridge ferment at high altitude.",
+    "type": "text/vnd.tiddlywiki",
+    "text": "!!! Tasting & Process Notes\n\n* Checked bottom crust at minute 13 — needed 60 seconds on the front gas burner to get full browning across the center.\n* Cubing the block mozzarella instead of grating prevented the cheese from burning before the dough finished baking."
+  }
+]

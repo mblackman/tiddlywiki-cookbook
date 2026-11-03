@@ -1,0 +1,6 @@
+title: $:/plugins/mblackman/cookbook/ui/sidebar-tab
+tags: $:/tags/SideBar
+caption: Cookbook
+type: text/vnd.tiddlywiki
+
+{{$:/plugins/mblackman/cookbook/dashboard}}

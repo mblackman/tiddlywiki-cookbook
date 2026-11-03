@@ -1,0 +1,6 @@
+title: $:/config/ViewTemplateBodyFilters/recipe
+tags: $:/tags/ViewTemplateBodyFilter
+list-before: $:/config/ViewTemplateBodyFilters/default
+type: text/vnd.tiddlywiki
+
+[tag[Recipe]then[$:/plugins/mblackman/cookbook/ui/ViewTemplate/recipe]] :else[tag[CookLog]then[$:/plugins/mblackman/cookbook/ui/ViewTemplate/cooklog]]

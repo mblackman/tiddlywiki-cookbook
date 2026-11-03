@@ -1,0 +1,325 @@
+title: $:/plugins/mblackman/cookbook/ui/ViewTemplate/recipe
+type: text/vnd.tiddlywiki
+
+\import [[$:/plugins/mblackman/cookbook/procedures]]
+
+<$let
+  scaleState={{{ [[$:/temp/recipe/scale/]addsuffix<currentTiddler>] }}}
+  factor={{{ [<scaleState>get[text]!is[blank]else[1]] }}}
+  defaultCookMode={{{ [[$:/config/cookbook/default-cookmode]get[text]!is[blank]else[no]] }}}
+  cookModeState={{{ [[$:/temp/recipe/cookmode/]addsuffix<currentTiddler>] }}}
+  isCookMode={{{ [<cookModeState>get[text]!is[blank]else<defaultCookMode>] }}}
+  scalePresets={{{ [[$:/config/cookbook/scale-presets]get[text]!is[blank]else[0.5 1 1.5 2 3]enlist-input[]] }}}
+  cookLogs={{{ [tag[CookLog]field:recipe<currentTiddler>!sort[cook-date]] }}}
+  cookCount={{{ [(cookLogs)count[]] }}}
+  lastCooked={{{ [(cookLogs)first[]get[cook-date]] }}}
+  equipList={{{ [enlist{!!equipment}] }}}
+  usedInRecipes={{{ [all[current]backlinks[]tag[Recipe]sort[title]] }}}
+  recipeTarget={{{ [<storyTiddler>!is[blank]else<currentTiddler>] }}}
+  misePrefix={{{ [[$:/temp/recipe/mise/]addsuffix<recipeTarget>addsuffix[/]] }}}
+>
+<div
+  class={{{ [[tw-recipe-container suite-container]] [<isCookMode>match[yes]then[tw-recipe-cookmode-on suite-density-touch]] +[join[ ]] }}}
+  data-suite-density={{{ [<isCookMode>match[yes]then[touch]else[default]] }}}
+>
+
+  <!-- 1. TOP METADATA & UTILITY BAR -->
+  <div class="tw-recipe-header-card suite-card">
+    <div class="tw-recipe-badges suite-tag-list">
+      <%if [{!!dish-type}!is[blank]] %>
+        <span class="suite-badge suite-badge--accent tw-recipe-pill tw-recipe-pill-primary">{{!!dish-type}}</span>
+      <%endif%>
+      <%if [{!!cuisine}!is[blank]] %>
+        <span class="suite-badge tw-recipe-pill">{{!!cuisine}}</span>
+      <%endif%>
+      <%if [{!!status}!is[blank]] %>
+        <span class={{{ [[suite-badge tw-recipe-pill tw-recipe-pill-status]] [{!!status}match[Staple]then[suite-badge--success]] [{!!status}match[Tested]then[suite-badge--info]] +[join[ ]] }}}>{{!!status}}</span>
+      <%endif%>
+      <%if [{!!rating}!is[blank]] %>
+        <span class="suite-badge suite-badge--warning tw-recipe-pill tw-recipe-pill-rating suite-tabular-nums">★ {{!!rating}}/5</span>
+      <%endif%>
+      <%if [<cookCount>compare:number:gt[0]] %>
+        <span class="suite-badge suite-badge--success tw-recipe-pill tw-recipe-pill-log suite-tabular-nums">Cooked <<cookCount>>× (Last: <<lastCooked>>)</span>
+      <%else%>
+        <span class="suite-badge tw-recipe-pill">Uncooked</span>
+      <%endif%>
+    </div>
+
+    <div class="tw-recipe-metrics-grid">
+      <%if [{!!prep-time}!is[blank]] %>
+        <div class="tw-recipe-metric">
+          <span class="tw-recipe-metric-label">Prep</span>
+          <span class="tw-recipe-metric-val suite-tabular-nums">{{!!prep-time}}</span>
+        </div>
+      <%endif%>
+      <%if [{!!cook-time}!is[blank]] %>
+        <div class="tw-recipe-metric">
+          <span class="tw-recipe-metric-label">Cook</span>
+          <span class="tw-recipe-metric-val suite-tabular-nums">{{!!cook-time}}</span>
+        </div>
+      <%endif%>
+      <%if [{!!oven-temp}!is[blank]] %>
+        <div class="tw-recipe-metric">
+          <span class="tw-recipe-metric-label">Temp</span>
+          <span class="tw-recipe-metric-val suite-tabular-nums">{{!!oven-temp}}</span>
+        </div>
+      <%endif%>
+      <%if [{!!base-servings}!is[blank]] %>
+        <div class="tw-recipe-metric">
+          <span class="tw-recipe-metric-label suite-tabular-nums">Yield (<<factor>>×)</span>
+          <span class="tw-recipe-metric-val suite-tabular-nums">
+            <$text text={{{ [{!!base-servings}multiply<factor>multiply[10]round[]divide[10]] }}}/> {{!!yield-unit}}
+          </span>
+        </div>
+      <%endif%>
+      <%if [{!!source-url}!is[blank]] %>
+        <div class="tw-recipe-metric">
+          <span class="tw-recipe-metric-label">Source</span>
+          <span class="tw-recipe-metric-val">
+            <a href={{!!source-url}} target="_blank" rel="noopener noreferrer" class="tw-recipe-source-link">
+              <%if [{!!source-name}!is[blank]] %><$text text={{!!source-name}}/><%else%>Link ↗<%endif%>
+            </a>
+          </span>
+        </div>
+      <%elseif [{!!source-name}!is[blank]] %>
+        <div class="tw-recipe-metric">
+          <span class="tw-recipe-metric-label">Source</span>
+          <span class="tw-recipe-metric-val">{{!!source-name}}</span>
+        </div>
+      <%endif%>
+    </div>
+
+    <!-- Scaling Controls & Action Bar -->
+    <div class="tw-recipe-toolbar suite-toolbar">
+      <div class="tw-recipe-scale-group">
+        <span class="tw-recipe-toolbar-label">Batch Scale:</span>
+        <$list filter="[(scalePresets)]" variable="mult">
+          <$let dispLabel={{{ [<mult>match[0.5]then[½]else<mult>addsuffix[×]] }}}>
+            <<recipe-Scale-Button mult=<<mult>> label=<<dispLabel>>>>
+          </$let>
+        </$list>
+      </div>
+      <div class="tw-recipe-action-group">
+        <$button class="suite-btn tw-recipe-btn">
+          <$action-deletetiddler $filter="[all[tiddlers]prefix<misePrefix>]"/>
+          Reset Checkboxes
+        </$button>
+        <$button
+          class={{{ [<isCookMode>match[yes]then[suite-btn tw-recipe-btn tw-recipe-btn-active]else[suite-btn tw-recipe-btn]] }}}
+          aria-pressed={{{ [<isCookMode>match[yes]then[true]else[false]] }}}
+        >
+          <$action-setfield $tiddler=<<cookModeState>> text={{{ [<isCookMode>match[yes]then[no]else[yes]] }}}/>
+          <%if [<isCookMode>match[yes]] %>Exit Cook Mode<%else%>Cook Mode (Large Text)<%endif%>
+        </$button>
+        <$button class="suite-btn suite-btn--primary tw-recipe-btn tw-recipe-btn-primary" actions=<<action-Create-Cook-Log>>>
+          + Log Cook Session
+        </$button>
+      </div>
+    </div>
+
+    <!-- Equipment / Cookware Row (using TW 5.4 Multi-Valued Variable display) -->
+    <%if [(equipList)count[]compare:number:gt[0]] %>
+      <div class="tw-recipe-equipment-bar">
+        <strong>Equipment:</strong>
+        <$list filter="[(equipList)]" variable="eq">
+          <span class="suite-badge tw-recipe-equip-tag"><$link to=<<eq>>><<eq>></$link></span>
+        </$list>
+      </div>
+    <%endif%>
+  </div>
+
+  <!-- 2. PINNED TWEAKS / "READ BEFORE COOKING" BANNER -->
+  <%if [{!!pinned-tweaks}!is[blank]] %>
+    <div class="tw-recipe-pinned-banner">
+      <div class="tw-recipe-pinned-header">
+        <strong>📌 Pinned Kitchen Notes & Tweaks (Read Before Cooking)</strong>
+      </div>
+      <div class="tw-recipe-pinned-body">
+        <$transclude $field="pinned-tweaks" $mode="block"/>
+      </div>
+    </div>
+  <%endif%>
+
+  <!-- 3. TWO-COLUMN COOKING WORKSPACE: MISE EN PLACE (LEFT) + DIRECTIONS (RIGHT) -->
+  <div class="tw-recipe-main-grid">
+
+    <!-- Left Column: Structured Ingredients (if `ingredients` field is populated) -->
+    <%if [{!!ingredients}!is[blank]] %>
+      <div class="tw-recipe-ingredients-col suite-card">
+        <h3 class="tw-recipe-section-title suite-tabular-nums">Ingredients (<$text text=<<factor>>/>×)</h3>
+        <div class="tw-recipe-ingredients-list">
+          <$list filter="[{!!ingredients}splitregexp[\n]!is[blank]]" variable="line">
+            <%if [<line>prefix[#]] %>
+              <h4 class="tw-recipe-ing-subheading"><$text text={{{ [<line>removeprefix[#]trim[]] }}}/></h4>
+            <%elseif [<line>search:title[|]] %>
+              <$let
+                pQty={{{ [<line>split[|]nth[1]trim[]] }}}
+                pUnit={{{ [<line>split[|]nth[2]trim[]] }}}
+                pItem={{{ [<line>split[|]nth[3]trim[]] }}}
+                pNote={{{ [<line>split[|]nth[4]trim[]] }}}
+              >
+                <<ing qty=<<pQty>> unit=<<pUnit>> item=<<pItem>> note=<<pNote>>>>
+              </$let>
+            <%else%>
+              <<ing item=<<line>>>>
+            <%endif%>
+          </$list>
+        </div>
+      </div>
+    <%endif%>
+
+    <!-- Right Column: Main Recipe Body / Directions -->
+    <div class="tw-recipe-directions-col">
+      <h3 class="tw-recipe-section-title">Directions & Notes</h3>
+      <div class="tw-recipe-directions-body">
+        <$transclude $field="text" $mode="block"/>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 4. SUB-RECIPE / COMPONENT BACKLINKS -->
+  <%if [(usedInRecipes)count[]compare:number:gt[0]] %>
+    <div class="tw-recipe-backlinks-box suite-panel-subtle">
+      <strong>Used as a component in:</strong>
+      <$list filter="[(usedInRecipes)]" variable="parentRec">
+        <span class="suite-badge tw-recipe-equip-tag"><$link to=<<parentRec>>><<parentRec>></$link></span>
+      </$list>
+    </div>
+  <%endif%>
+
+  <!-- 5. POST-COOK JOURNAL & TASTING LOGS -->
+  <div class="tw-recipe-cooklog-section">
+    <div class="tw-recipe-cooklog-header">
+      <h3 class="tw-recipe-section-title suite-tabular-nums">
+        Cook Log & Iteration History (<$text text=<<cookCount>>/>)
+      </h3>
+      <$button class="suite-btn suite-btn--primary tw-recipe-btn tw-recipe-btn-primary" actions=<<action-Create-Cook-Log>>>
+        + Record New Cook Note
+      </$button>
+    </div>
+
+    <!-- Quick Inline Note Appender for Fast Post-Meal Capture -->
+    <details class="tw-recipe-quicklog-details suite-panel-subtle">
+      <summary>⚡ Quick-Add a Cook Log Without Leaving This Recipe</summary>
+      <$let draftLog={{{ [[$:/temp/recipe/quicklog/]addsuffix<currentTiddler>] }}}>
+        <div class="tw-recipe-quicklog-form">
+          <div class="tw-recipe-quicklog-row">
+            <label class="tw-recipe-field-label">
+              <span>Date</span>
+              <$edit-text tiddler=<<draftLog>> field="cook-date" default=<<now "YYYY-0MM-0DD">> tag="input" size="12" class="suite-input tw-recipe-input suite-tabular-nums"/>
+            </label>
+            <label class="tw-recipe-field-label">
+              <span>Rating (1–5)</span>
+              <$select tiddler=<<draftLog>> field="session-rating" default="5" class="suite-select tw-recipe-select suite-tabular-nums">
+                <option value="5">5</option>
+                <option value="4">4</option>
+                <option value="3">3</option>
+                <option value="2">2</option>
+                <option value="1">1</option>
+              </$select>
+            </label>
+            <label class="tw-recipe-field-label">
+              <span>Scale</span>
+              <$edit-text tiddler=<<draftLog>> field="scale-used" default={{{ [<factor>addsuffix[x]] }}} tag="input" size="6" class="suite-input tw-recipe-input suite-tabular-nums"/>
+            </label>
+          </div>
+          <div class="tw-recipe-quicklog-row">
+            <label class="tw-recipe-field-label tw-recipe-field-wide">
+              <span>Modifications Made</span>
+              <$edit-text tiddler=<<draftLog>> field="modifications" tag="input" class="suite-input tw-recipe-input-wide" placeholder="e.g., Subbed shallots, baked 3 mins longer at 425F"/>
+            </label>
+          </div>
+          <div class="tw-recipe-quicklog-row">
+            <label class="tw-recipe-field-label tw-recipe-field-wide">
+              <span>Next Time / Verdict</span>
+              <$edit-text tiddler=<<draftLog>> field="next-time" tag="input" class="suite-input tw-recipe-input-wide" placeholder="e.g., Reduce salt by 1/4 tsp; crust was spot on"/>
+            </label>
+          </div>
+          <div class="tw-recipe-quicklog-row">
+            <label class="tw-recipe-field-label tw-recipe-field-wide">
+              <span>Detailed Tasting Notes</span>
+              <$edit-text tiddler=<<draftLog>> field="text" tag="textarea" class="suite-textarea tw-recipe-textarea" placeholder="Thoughts on texture, plating, pairings, or family feedback..."/>
+            </label>
+          </div>
+          <div class="suite-toolbar">
+            <$button class="suite-btn suite-btn--primary tw-recipe-btn tw-recipe-btn-primary">
+              <$let
+                qDate={{{ [<draftLog>get[cook-date]!is[blank]else<now "YYYY-0MM-0DD">] }}}
+                newLogTitle={{{ [[CookLog: ]addsuffix<currentTiddler>addsuffix[ (]addsuffix<qDate>addsuffix[)]] }}}
+              >
+                <$action-createtiddler
+                  $basetitle=<<newLogTitle>>
+                  tags="CookLog"
+                  recipe=<<currentTiddler>>
+                  cook-date=<<qDate>>
+                  session-rating={{{ [<draftLog>get[session-rating]!is[blank]else[5]] }}}
+                  scale-used={{{ [<draftLog>get[scale-used]!is[blank]else[1x]] }}}
+                  modifications={{{ [<draftLog>get[modifications]] }}}
+                  next-time={{{ [<draftLog>get[next-time]] }}}
+                  text={{{ [<draftLog>get[text]] }}}
+                />
+                <$action-deletetiddler $tiddler=<<draftLog>>/>
+              </$let>
+              Save Cook Entry
+            </$button>
+          </div>
+        </div>
+      </$let>
+    </details>
+
+    <%if [<cookCount>compare:number:gt[0]] %>
+      <div class="tw-recipe-log-timeline">
+        <$list filter="[(cookLogs)]" variable="logTid">
+          <div class="tw-recipe-log-card suite-card suite-card--accent-primary">
+            <div class="tw-recipe-log-card-header">
+              <strong class="suite-tabular-nums"><$link to=<<logTid>>><$text text={{{ [<logTid>get[cook-date]!is[blank]else<logTid>] }}}/></$link></strong>
+              <span class="tw-recipe-log-meta suite-badge suite-tabular-nums">
+                ★ <$text text={{{ [<logTid>get[session-rating]!is[blank]else[-]] }}}/>/5
+                · Scale: <$text text={{{ [<logTid>get[scale-used]!is[blank]else[1x]] }}}/>
+              </span>
+              <%if [<logTid>get[next-time]!is[blank]] %>
+                <$button class="suite-btn tw-recipe-btn tw-recipe-btn-small" tooltip="Pin this 'Next Time' note to the top of the recipe">
+                  <$let
+                    noteToPin={{{ [<logTid>get[next-time]] }}}
+                    existingPin={{!!pinned-tweaks}}
+                    newPin={{{ [<existingPin>!is[blank]addsuffix[\n* ]addsuffix<noteToPin>] :else[[* ]addsuffix<noteToPin>] }}}
+                  >
+                    <$action-setfield $field="pinned-tweaks" $value=<<newPin>>/>
+                  </$let>
+                  📌 Pin "Next Time" to Recipe Header
+                </$button>
+              <%endif%>
+            </div>
+            <%if [<logTid>get[modifications]!is[blank]] %>
+              <div class="tw-recipe-log-field">
+                <strong>Tweaks Made:</strong> <$text text={{{ [<logTid>get[modifications]] }}}/>
+              </div>
+            <%endif%>
+            <%if [<logTid>get[verdict]!is[blank]] %>
+              <div class="tw-recipe-log-field">
+                <strong>Verdict:</strong> <$text text={{{ [<logTid>get[verdict]] }}}/>
+              </div>
+            <%endif%>
+            <%if [<logTid>get[next-time]!is[blank]] %>
+              <div class="tw-recipe-log-field tw-recipe-log-nexttime">
+                <strong>For Next Time:</strong> <$text text={{{ [<logTid>get[next-time]] }}}/>
+              </div>
+            <%endif%>
+            <%if [<logTid>get[text]!is[blank]] %>
+              <div class="tw-recipe-log-body">
+                <$transclude $tiddler=<<logTid>> $field="text" $mode="block"/>
+              </div>
+            <%endif%>
+          </div>
+        </$list>
+      </div>
+    <%else%>
+      <div class="suite-empty-state tw-recipe-empty-logs">
+        No cook sessions logged yet. After making this dish, log a session above to track oven adjustments, substitutions, and tasting notes.
+      </div>
+    <%endif%>
+  </div>
+
+</div>
+</$let>
